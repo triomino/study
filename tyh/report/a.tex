@@ -61,6 +61,7 @@ programming）一书就在用障碍函数做凸优化。到上世纪六十年代
 $\mathbb{R}$ $\mathbb{R}_+$
 $\bm x$ $\textbf{dom}f$
 $\succeq$
+$\nabla$
 $n$维数 $m$约束个数
 \subsection{预备知识}
 本文考虑的凸优化问题具有如下形式：
@@ -73,12 +74,22 @@ $n$维数 $m$约束个数
 记定义域$\mathcal{D}=\bigcap\limits_{i=0}^{m}\textbf{dom}f_i$，
 定义该问题的拉格朗日对偶函数为：
 \begin{equation}
-    g(\bm\lambda, \bm\nu)=\inf_{\bm x\in D}(f_0(\bm x)+\sum\limits_{i=1}^m\lambda_if_i(\bm x)+\bm\nu^T(A\bm x-\bm b))\label{dual_function}
+    g(\bm\lambda, \bm\nu)=\inf_{\bm x\in D}\{f_0(\bm x)+\sum\limits_{i=1}^m\lambda_if_i(\bm x)+\bm\nu^T(A\bm x-\bm b)\}\label{dual_function}
 \end{equation}
 其中$\bm\lambda=(\lambda_1,\lambda_2,...,\lambda_m)\in\mathbb R^m,\bm\nu\in\mathbb{R}^p$，那么问题\ref{general_convex_prob}的对偶问题为：
 \begin{problem}
-最大化$g(\bm\lambda,\bm\nu)$，使得$\bm\lambda\succeq\bm 0$。
+最大化$g(\bm\lambda,\bm\nu)$，使得$\bm\lambda\succeq\bm 0$。\label{dual_problem}
 \end{problem}
+
+记问题\ref{general_convex_prob}的最优值为$p^*$，问题\ref{dual_problem}的最优值为$d^*$，
+那么$d^*\le p^*$。使$d^*=p^*$成立的一个条件是\textbf{Slater条件}：存在一点$\bar{\bm x}\in \textbf{relint}\mathcal D$使得
+$$f_i(\bar{\bm x})<0(i=1,...,m),A\bar{\bm x}=\bm b$$
+成立。现在假设$f_i(\bm x)(i=0,1,...,m)$\textbf{可微}，那么可以推导出\textbf{Karush-Kuhn-Tucker条件}，即当$\bm x^*,\bm\lambda^*,\bm\nu^*$满足
+$$A\bm x^*=\bm b,f_i(\bm x^*)\le 0,i=1,...,m$$
+$$\bm\lambda^*\succeq \bm 0$$
+$$\lambda^*_if_i(\bm x^*)=0,i=1,...,m$$
+$$\nabla f_0(\bm x^*)+\sum_{i=1}^m{\lambda^*_i}\nabla f_i(\bm x^*)+A^T\bm\nu^*=\bm 0$$
+时，$d^*=p^*$，并且$\bm x^*,(\bm\lambda^*,\bm\mu^*)$分别是原问题和对偶问题的最优解。
 \section{方法}
 \subsection{障碍函数}
 \subsection{障碍方法}
