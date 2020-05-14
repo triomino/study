@@ -1,0 +1,89 @@
+\documentclass{article}
+\usepackage[UTF8]{ctex}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{bm}
+
+\newtheorem{problem}{问题}
+
+\title{题目待定}
+\author{张瑜安\\ 计算机科学与技术学院 \\21921060}
+\date{}
+\begin{document}
+\maketitle
+\section{介绍}
+内点法是求解凸优化问题非常优秀的一类方法，其做法是通过在约束可行域中的一点出发，
+迭代探索附近的点来逼近最优解，这也是“内点”这个名字的含义。在线性规划问题的求解上，
+内点法比单纯形法要快，而且内点法一般保证了多项式复杂度，单纯形法则没有。
+内点法也被拓展到更加一般的凸优化问题当中（ref 两个姓N的人的研究）。
+到目前为止，内点法是相当流行的凸优化问题求解方法，主流的求解器都会集成这类方法。实际
+使用的时候，它的速度很快，迭代次数也很少。但它也有一定的局限性，一是对函数进行了
+二次可微的限制（ref 找一找权威的），相比于使用次梯度的方法适用范围更窄一些，
+二是它是一个点方法，没法求解一个极值的区域（是不是改成局部方法无法取到最小值好一点？）。
+
+内点法的一般思路是使用可微的障碍函数（Barrier Function）代替一个理想的惩罚函数，
+同时将优化问题变成求解最优条件的问题，就可以使用牛顿法来解。本文介绍两种思路相承接的方法，
+第一类是直接应用障碍函数、从中心路径逼近的方法，第二类是考虑对偶变量一起优化的原始
+对偶方法。其实后者是前者的一个扩展，在ref（方法）一节中将会展示如何从第一种方法
+启发得到第二种，这种启示思路来自于ref（Convex Optimization）一书。
+
+
+\section{背景调研}
+（这一段参考找The interior-point revolution in optimization: History, recent developments, and lasting consequences里的）
+内点法起源可以追溯到1955年，（ref the logarithm potential method of convex 
+programming）一书就在用障碍函数做凸优化。到上世纪六十年代，内点法主要被应用于非线
+性的优化，因为当时单纯形法在线性规划中拥有不可撼动的地位。到七十年代内点法的研究
+越来越少，其中一个原因是这些方法依赖的关键矩阵是病态的，方法的稳定性弱。
+
+到八十年代初内点法差不多就要盖棺定论了，然而1984年Karmarkar在线性规划领域提出了
+一个多项式时间复杂度的算法，实际效率比单纯形法快五十倍，后续研究表明该方法和以前用
+障碍函数的方法本质上十分接近，从而内点法重新成为研究热点。
+
+朴素的利用障碍函数的方法
+仍然存在效率问题，最重要的原因是一个固定的障碍参数（类似于拉格朗日乘子，在方法
+（ref）中提到）对应了一轮牛顿迭代，障碍参数的外层迭代没法和内层迭代适应性地变化。
+所以后续又有许多相似算法被提出来，其中最受瞩目的是原始对偶方法，它使固定的“障碍参数”
+变成可迭代的对偶参数，从而将原先内外两层迭代融合成一层，效率更上一层楼。
+到今天为止原始对偶内点法仍然具有相当的竞争力，在选用内点法时都会优先考虑这类方法。
+
+
+\section{报告组织}
+本文第一章对内点法做了简单介绍，第二章介绍了内点法的历史发展，这些内容主要来自于Wikipedia和ref(IPM:A survey, short survey The interior-point revolution in optimization: History, recent developments, and lasting consequences...)等几篇综述。
+第三章就是本章介绍文章结构，第四章约定记号并简述本文关注的凸优化问题及对偶问题、KKT条件和牛顿法等必要知识。
+
+第五章首先介绍了重要工具障碍函数，然后介绍了直接使用障碍函数的朴素方法。然后介绍了
+原始对偶方法，并且说明了原始对偶方法可以如何从障碍函数启发得到。第六章对第五章中的方法进行了可行性和算法复杂度分析，并结合实验（？待定）分析其优劣。
+这两章内容主要来自于ref（Convex Optimization）和ref2（Convex Optimization:Algorithms and Complexity）两本书。
+
+第七章介绍了内点法的应用，最后，第九章对内点法做了总结。
+\section{记号和预备知识}
+\subsection{记号}
+$\mathbb{R}$ $\mathbb{R}_+$
+$\bm x$ $\textbf{dom}f$
+$\succeq$
+$n$维数 $m$约束个数
+\subsection{预备知识}
+本文考虑的凸优化问题具有如下形式：
+\begin{problem}
+最小化$f_0(\bm x)$，使得$f_i(\bm x)\le 0(i=1,2,...,m),A\bm x=\bm{b}$成立，其中$f_i(\bm x):\mathbb{R}^n\rightarrow\mathbb{R}(i=0,1,...,m)$均为凸函数，$A\in\mathbb{R}^{p\times n},\bm b\in\mathbb{R}^p$。
+\label{general_convex_prob}
+\end{problem}
+
+上述问题中$\bm x$的维数是$n$，约束一共是$m+p$个，其中有$p$个是等式线性约束。
+记定义域$\mathcal{D}=\bigcap\limits_{i=0}^{m}\textbf{dom}f_i$，
+定义该问题的拉格朗日对偶函数为：
+\begin{equation}
+    g(\bm\lambda, \bm\nu)=\inf_{\bm x\in D}(f_0(\bm x)+\sum\limits_{i=1}^m\lambda_if_i(\bm x)+\bm\nu^T(A\bm x-\bm b))\label{dual_function}
+\end{equation}
+其中$\bm\lambda=(\lambda_1,\lambda_2,...,\lambda_m)\in\mathbb R^m,\bm\nu\in\mathbb{R}^p$，那么问题\ref{general_convex_prob}的对偶问题为：
+\begin{problem}
+最大化$g(\bm\lambda,\bm\nu)$，使得$\bm\lambda\succeq\bm 0$。
+\end{problem}
+\section{方法}
+\subsection{障碍函数}
+\subsection{障碍方法}
+\subsection{原始对偶方法}
+\section{理论分析}
+\section{应用}
+\section{总结}
+\end{document}
