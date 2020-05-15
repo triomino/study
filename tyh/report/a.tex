@@ -2,6 +2,7 @@
 \usepackage[UTF8]{ctex}
 \usepackage{amsfonts}
 \usepackage{amsmath}
+\usepackage[ruled,vlined]{algorithm2e}
 \usepackage{bm}
 
 \newtheorem{problem}{问题}
@@ -33,15 +34,15 @@
 内点法起源可以追溯到1955年，（ref the logarithm potential method of convex 
 programming）一书就在用障碍函数做凸优化。到上世纪六十年代，内点法主要被应用于非线
 性的优化，因为当时单纯形法在线性规划中拥有不可撼动的地位。到七十年代内点法的研究
-越来越少，其中一个原因是这些方法依赖的关键矩阵是病态的，方法的稳定性弱。
+越来越少，其原因未知，猜测其中之一是接近障碍函数边缘时，
+这些方法依赖的关键矩阵是病态的，方法的稳定性弱。
 
 到八十年代初内点法差不多就要盖棺定论了，然而1984年Karmarkar在线性规划领域提出了
 一个多项式时间复杂度的算法，实际效率比单纯形法快五十倍，后续研究表明该方法和以前用
 障碍函数的方法本质上十分接近，从而内点法重新成为研究热点。
 
-朴素的利用障碍函数的方法
-仍然存在效率问题，最重要的原因是一个固定的障碍参数（类似于拉格朗日乘子，在方法
-（ref）中提到）对应了一轮牛顿迭代，障碍参数的外层迭代没法和内层迭代适应性地变化。
+朴素的利用障碍函数的方法存在效率问题，最重要的原因是一个
+固定的障碍参数对应了一轮牛顿迭代，障碍参数的外层迭代没法和内层迭代适应性地变化。
 所以后续又有许多相似算法被提出来，其中最受瞩目的是原始对偶方法，它使固定的“障碍参数”
 变成可迭代的对偶参数，从而将原先内外两层迭代融合成一层，效率更上一层楼。
 到今天为止原始对偶内点法仍然具有相当的竞争力，在选用内点法时都会优先考虑这类方法。
@@ -49,7 +50,7 @@ programming）一书就在用障碍函数做凸优化。到上世纪六十年代
 
 \section{报告组织}
 本文第一章对内点法做了简单介绍，第二章介绍了内点法的历史发展，这些内容主要来自于Wikipedia和ref(IPM:A survey, short survey The interior-point revolution in optimization: History, recent developments, and lasting consequences...)等几篇综述。
-第三章就是本章介绍文章结构，第四章约定记号并简述本文关注的凸优化问题及对偶问题、KKT条件和牛顿法等必要知识。
+第三章就是本章介绍文章结构，第四章约定记号并简述本文关注的凸优化问题、对偶问题和KKT条件等必要知识。
 
 第五章首先介绍了重要工具障碍函数，然后介绍了直接使用障碍函数的朴素方法。然后介绍了
 原始对偶方法，并且说明了原始对偶方法可以如何从障碍函数启发得到。第六章对第五章中的方法进行了可行性和算法复杂度分析，并结合实验（？待定）分析其优劣。
@@ -72,9 +73,12 @@ $n$维数 $m$约束个数
 
 上述问题中$\bm x$的维数是$n$，约束一共是$m+p$个，其中有$p$个是等式线性约束。
 记定义域$\mathcal{D}=\bigcap\limits_{i=0}^{m}\textbf{dom}f_i$，
-定义该问题的拉格朗日对偶函数为：
+定义该问题的拉格朗日函数和对偶函数为：
 \begin{equation}
-    g(\bm\lambda, \bm\nu)=\inf_{\bm x\in D}\{f_0(\bm x)+\sum\limits_{i=1}^m\lambda_if_i(\bm x)+\bm\nu^T(A\bm x-\bm b)\}\label{dual_function}
+    L(\bm x,\bm\lambda, \bm\nu)=f_0(\bm x)+\sum\limits_{i=1}^m\lambda_if_i(\bm x)+\bm\nu^T(A\bm x-\bm b)\label{lagrange_function}
+\end{equation}
+\begin{equation}
+    g(\bm\lambda, \bm\nu)=\inf_{\bm x\in D}\{L(\bm x,\bm\lambda, \bm\nu)\}\label{dual_function}
 \end{equation}
 其中$\bm\lambda=(\lambda_1,\lambda_2,...,\lambda_m)\in\mathbb R^m,\bm\nu\in\mathbb{R}^p$，那么问题\ref{general_convex_prob}的对偶问题为：
 \begin{problem}
@@ -90,11 +94,138 @@ $$\bm\lambda^*\succeq \bm 0$$
 $$\lambda^*_if_i(\bm x^*)=0,i=1,...,m$$
 $$\nabla f_0(\bm x^*)+\sum_{i=1}^m{\lambda^*_i}\nabla f_i(\bm x^*)+A^T\bm\nu^*=\bm 0$$
 时，$d^*=p^*$，并且$\bm x^*,(\bm\lambda^*,\bm\mu^*)$分别是原问题和对偶问题的最优解。
+
+不考虑不等式约束，仅考虑等式约束，那么上述KKT条件简化为：
+\begin{equation}
+    A\bm x^*=\bm b,\nabla f_0(x^*)+A^T\bm\nu ^*=\bm 0\label{equation_constraint_kkt}
+\end{equation}
+
+加强$f_0(\bm x)$，假设其\textbf{二阶可微}，那么就可以用牛顿法求解约束\eqref{equation_constraint_kkt}中的
+$\bm x^*$。用$\bm x+\Delta \bm x$代替式\eqref{equation_constraint_kkt}
+中的$\bm x^*$，并对$\nabla f_0(\bm x+\Delta \bm x)$做一阶近似就可以得到
+计算迭代方向$\Delta \bm x$的方程：
+\begin{equation}
+\begin{pmatrix}
+    \nabla^2f_0(\bm x) & A^T\\
+    A & \bm 0
+\end{pmatrix}
+\begin{pmatrix}
+    \Delta \bm x\\
+    \bm\nu^*
+\end{pmatrix}=
+\begin{pmatrix}
+    -\Delta f_0(\bm x)\\
+    \bm 0
+\end{pmatrix}\label{newton_for_equation}\end{equation}
+如果我们能找到一个初始可行点$\bm x_0$，就可以用$x_k=x_{k-1}+\mu \Delta \bm x$来求解$\bm x^*$。到此为止，
+我们有了一个求解仅含等式约束的凸优化问题的牛顿方法。
+下一章将会介绍如何利用障碍函数将不等式约束融合进目标函数，从而可以使用此处所描述
+的牛顿法求解。
+\label{text4_2}
 \section{方法}
-\subsection{障碍函数}
-\subsection{障碍方法}
+\subsection{障碍函数和中心路径}
+我们试图将问题\ref{general_convex_prob}转换为等式约束问题，因为在\ref{text4_2}
+中已经提出了一个解决等式约束问题的牛顿方法。引入如下函数：
+$$I_-(u)=\begin{cases}
+    0 & u\le 0 \\
+    \infty & u > 0
+\end{cases}$$
+用该函数来惩罚大于零的$f_i(\bm x),1\le i\le m$，那么问题\ref{general_convex_prob}等价于：
+\begin{problem}
+最小化$f_0(\bm x)+\sum_{i=1}^m{I_-(f_i(\bm x))}$使得$A\bm x=\bm b$
+\label{barrier_problem}
+\end{problem}
+
+问题\ref{barrier_problem}中，需要优化的目标函数在不等式约束内等于$f_0(\bm x)$，
+其他区域内没有定义，所以和问题\ref{general_convex_prob}的等价是显然的。
+
+引入$I_-(u)$后，不等式约束被融合进目标函数，只剩下等式约束。
+然而问题\ref{barrier_problem}中目标函数是一个不可微的函数，我们需要做一点近似才能应用\ref{text4_2}中
+的牛顿方法。用
+$$\widehat I_-(u)=-(1/t)\log(-u)$$
+近似$I_-(u)$（其中$t>0$为常数），问题\ref{barrier_problem}可以近似成如下问题：
+\begin{problem}
+    最小化$f_0(\bm x)+\sum_{i=1}^m{-(1/t)\log(f_i(\bm x))}$使得$A\bm x=\bm b$
+    \label{barrier_approx_prob}
+\end{problem}
+
+可以看出，$t$越大，$\widehat I_-(u)$越接近$I_-(u)$，问题\ref{barrier_approx_prob}
+和问题\ref{barrier_problem}的目标函数就越接近，其解也越接近。
+目标函数中的对数惩罚部分$\phi(\bm x)=-\sum_{i=1}^m\log (-f_i(\bm x))$被称做问题\ref{general_convex_prob}的\textbf{对数障碍函数}。
+
+当$f_i(\bm x),i=0,...,m$\textbf{二阶可微}时，问题\ref{barrier_approx_prob}就可以应用\ref{text4_2}中
+的牛顿方法。一个朴素的思路是直接设一个很大$t$，计算在$t$下问题$\ref{barrier_approx_prob}$的解。
+但是$t$很大时，目标函数的Hessian矩阵在可行域边界剧烈变动。所以在\ref{text_barrier_method}中
+的方法考虑逐渐增加$t$，解决一系列的问题\ref{barrier_approx_prob}来规避这个问题。
+
+为了简化符号，重写问题\ref{barrier_approx_prob}：
+\begin{problem}
+    最小化$tf_0(\bm x)+\phi(\bm x)$，使得$A\bm x=\bm b$
+    \label{barrier_approx_prob_simple}
+\end{problem}
+
+对某一$t>0$，用\textbf{中心点}$\bm x^*(t)$表示问题\ref{barrier_approx_prob_simple}的解，
+将不同$t$对应的中心点集合称为问题\ref{general_convex_prob}的\textbf{中心路径}。
+中心路径上的点需在障碍函数的定义域中，并且满足
+式\eqref{equation_constraint_kkt}的KKT条件，即：
+$$A\bm x^*(t)=\bm b,f_i(\bm x^*(t))<0,i=1,...,m$$
+并且存在$\widehat{\bm \nu}\in \mathbb{R}^p$使得
+\begin{equation}t\nabla f_0(\bm x^*(t))+\nabla\phi(\bm x^*(t))+A^T\widehat{\bm \nu}=\bm 0\label{center_path_kkt}\end{equation}
+
+在\ref{time_complexity}将会证明$f_0(\bm x^*(t))-p^*\le m/t$，即中心点的函数值
+和最优解相差不超过$m/t$，从而我们可以在求解过程中对精度进行控制。
+从该结论也可以得出当$t\rightarrow\infty$时，$\bm x^*(t)$从中心路径逼近原问题的解。下一节介绍从中心路径逼近最优解的方法。
+\label{text_barrier_center_path}
+\subsection{障碍函数法}
+\label{text_barrier_method}
+有了\ref{text_barrier_center_path}的铺垫，很自然的可以得到如下算法：
+
+\renewcommand{\algorithmcfname}{算法}
+\begin{algorithm}[H]
+    % \SetKwInOut{KIN}{输入}
+    % \SetKwInOut{KOUT}{输出}
+    \KwIn {严格可行点$\bm x_0$,参数$t>0,\mu>1$，误差阈值$\epsilon>0$}
+    \For {$i \gets 0\dots \infty $} {
+        从$\bm x_i$出发，在$A\bm x=\bm b$约束下极小化$tf_0(\bm x)+\phi(\bm x)$，解出中心点$\bm x_i^*(t)$\;
+        $\bm x_{i+1}\leftarrow\bm x_i^*(t)$\;
+        \If{$m/t_i<\epsilon$} {
+            \Return $\bm x_{i+1}$
+        }
+        $t\leftarrow \mu t$
+    }
+    \caption{障碍函数法}
+    \label{barrier_method}
+\end{algorithm}
+
+此处对算法\ref{barrier_method}中的重要步骤进行两点说明：
+\begin{enumerate}
+    \item 解中心点$\bm x_i^*(t)$是仅有线性等式约束的凸优化问题，解这类问题的方法
+    已经在$\ref{text4_2}$描述过了，使用的是牛顿法。因而该算法存在内外两层迭代。
+    \item 初始的严格可行点$\bm x_0$可以通过求解问题\ref{prepare}找到，此问题和我们要求解
+    的问题是同一类问题，不同之处在于该问题的初始可行解很容易找，
+    因为任取定义域中满足$A\bm x=\bm b$的一点$\bm x_0$，总能找到足够大的$s_0$与$x_0$一起
+    作为初始解。求解严格可行点$x_0$还有其他方法，比如使用不可行初始点牛顿法，
+    需要修改式\ref{newton_for_equation}，此处不再赘述。
+    \begin{problem}
+        最小化$s$，使得$f_i(\bm x)\le s,i=1,...,m,A\bm x=\bm b$
+        \label{prepare}
+    \end{problem}
+\end{enumerate} 
+对算法的参数$t$和$\mu$进行简单分析：
+\begin{enumerate}
+    \item 如果$\mu$较小，$t$变化之后，$x^*(t)$变化也较小，所以上一次迭代终点会是这次
+    迭代很好的初始点。这样内层的牛顿迭代次数会很少，但是外层的$t$达到$m/\epsilon$要经过很多次的迭代。
+    反之，如果$\mu$较大，内层迭代次数偏多，外层迭代次数减少。
+    不过$\mu$对总的迭代次数影响并不是很大，实践中可以调参。
+    \item 外层参数$t$的迭代无法和内层迭代一起适应性的变化，即$t$必须等到一次牛顿迭代完成后才能变化。这是该算法的效率瓶颈之一。
+\end{enumerate}
 \subsection{原始对偶方法}
+\label{prim_dual_method}
 \section{理论分析}
+\subsection{可行性分析}
+\subsection{时间复杂度分析}
+\label{time_complexity}
+$f_0(\bm x^*(t))-p^*\le m/t$
 \section{应用}
 \section{总结}
 \end{document}
