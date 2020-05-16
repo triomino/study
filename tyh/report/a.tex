@@ -64,6 +64,9 @@ $\bm x$ $\textbf{dom}f$
 $\succeq$
 $\nabla$
 $n$维数 $m$约束个数
+$\textbf{f}(\bm x)$函数$\mathbb{R}^n\rightarrow\mathbb{R}^m$
+$\text{D}\textbf{f}(\bm x)$雅可比矩阵1
+$\textbf{diag}$
 \subsection{预备知识}
 本文考虑的凸优化问题具有如下形式：
 \begin{problem}
@@ -88,11 +91,16 @@ $n$维数 $m$约束个数
 记问题\ref{general_convex_prob}的最优值为$p^*$，问题\ref{dual_problem}的最优值为$d^*$，
 那么$d^*\le p^*$。使$d^*=p^*$成立的一个条件是\textbf{Slater条件}：存在一点$\bar{\bm x}\in \textbf{relint}\mathcal D$使得
 $$f_i(\bar{\bm x})<0(i=1,...,m),A\bar{\bm x}=\bm b$$
-成立。现在假设$f_i(\bm x)(i=0,1,...,m)$\textbf{可微}，那么可以推导出\textbf{Karush-Kuhn-Tucker条件}，即当$\bm x^*,\bm\lambda^*,\bm\nu^*$满足
-$$A\bm x^*=\bm b,f_i(\bm x^*)\le 0,i=1,...,m$$
-$$\bm\lambda^*\succeq \bm 0$$
-$$\lambda^*_if_i(\bm x^*)=0,i=1,...,m$$
-$$\nabla f_0(\bm x^*)+\sum_{i=1}^m{\lambda^*_i}\nabla f_i(\bm x^*)+A^T\bm\nu^*=\bm 0$$
+成立。现在假设$f_i(\bm x)(i=0,1,...,m)$\textbf{可微}，那么可以推导出\textbf{Karush-Kuhn-Tucker条件}，即当存在$\bm x^*,\bm\lambda^*,\bm\nu^*$满足
+\begin{equation}
+    \label{kkt}
+    \begin{gathered}
+    A\bm x^*=\bm b,f_i(\bm x^*)\le 0,i=1,...,m \\
+    \bm\lambda^*\succeq \bm 0 \\
+    \lambda^*_if_i(\bm x^*)=0,i=1,...,m\\
+    \nabla f_0(\bm x^*)+\sum_{i=1}^m{\lambda^*_i}\nabla f_i(\bm x^*)+A^T\bm\nu^*=\bm 0\\
+    \end{gathered}
+\end{equation}
 时，$d^*=p^*$，并且$\bm x^*,(\bm\lambda^*,\bm\mu^*)$分别是原问题和对偶问题的最优解。
 
 不考虑不等式约束，仅考虑等式约束，那么上述KKT条件简化为：
@@ -158,9 +166,9 @@ $$\widehat I_-(u)=-(1/t)\log(-u)$$
 但是$t$很大时，目标函数的Hessian矩阵在可行域边界剧烈变动。所以在\ref{text_barrier_method}中
 的方法考虑逐渐增加$t$，解决一系列的问题\ref{barrier_approx_prob}来规避这个问题。
 
-为了简化符号，重写问题\ref{barrier_approx_prob}：
+简化符号，重写问题\ref{barrier_approx_prob}：
 \begin{problem}
-    最小化$tf_0(\bm x)+\phi(\bm x)$，使得$A\bm x=\bm b$
+    最小化$f_0(\bm x)+(1/t)\phi(\bm x)$，使得$A\bm x=\bm b$
     \label{barrier_approx_prob_simple}
 \end{problem}
 
@@ -170,7 +178,11 @@ $$\widehat I_-(u)=-(1/t)\log(-u)$$
 式\eqref{equation_constraint_kkt}的KKT条件，即：
 $$A\bm x^*(t)=\bm b,f_i(\bm x^*(t))<0,i=1,...,m$$
 并且存在$\widehat{\bm \nu}\in \mathbb{R}^p$使得
-\begin{equation}t\nabla f_0(\bm x^*(t))+\nabla\phi(\bm x^*(t))+A^T\widehat{\bm \nu}=\bm 0\label{center_path_kkt}\end{equation}
+\begin{equation}\nabla f_0(\bm x^*(t))+(1/t)\nabla\phi(\bm x^*(t))+A^T\widehat{\bm \nu}=\bm 0\label{center_path_kkt}\end{equation}
+把式\eqref{center_path_kkt}中$\phi$的梯度展开写就是：
+\begin{equation}
+    \nabla f_0(\bm x^*(t))+\sum_{i=1}^m{\frac{1}{-tf_i(\bm x^*(t))}\nabla f_i(\bm x^*(t)}+A^T\widehat{\bm \nu}=\bm 0\label{center_path_kkt_2}
+\end{equation}
 
 在\ref{time_complexity}将会证明$f_0(\bm x^*(t))-p^*\le m/t$，即中心点的函数值
 和最优解相差不超过$m/t$，从而我们可以在求解过程中对精度进行控制。
@@ -186,7 +198,7 @@ $$A\bm x^*(t)=\bm b,f_i(\bm x^*(t))<0,i=1,...,m$$
     % \SetKwInOut{KOUT}{输出}
     \KwIn {严格可行点$\bm x_0$,参数$t>0,\mu>1$，误差阈值$\epsilon>0$}
     \For {$i \gets 0\dots \infty $} {
-        从$\bm x_i$出发，在$A\bm x=\bm b$约束下极小化$tf_0(\bm x)+\phi(\bm x)$，解出中心点$\bm x_i^*(t)$\;
+        从$\bm x_i$出发，在$A\bm x=\bm b$约束下极小化$f_0(\bm x)+(1/t)\phi(\bm x)$，解出中心点$\bm x_i^*(t)$\;
         $\bm x_{i+1}\leftarrow\bm x_i^*(t)$\;
         \If{$m/t_i<\epsilon$} {
             \Return $\bm x_{i+1}$
@@ -221,6 +233,72 @@ $$A\bm x^*(t)=\bm b,f_i(\bm x^*(t))<0,i=1,...,m$$
 \end{enumerate}
 \subsection{原始对偶方法}
 \label{prim_dual_method}
+中心路径和对偶问题有着十分紧密的联系。对固定的$t$，中心点是$\bm x^*(t)$，
+取$\bm\lambda_i^*(t)=-\frac{1}{tf_i(\bm x^*(t))},i=1,...,m$,令$\bm \nu^*(t)$为式\eqref{center_path_kkt}中的$\widehat{\bm\nu}$。
+根据式\eqref{center_path_kkt_2}有：
+$$\nabla f_0(\bm x^*(t))+\sum_{i=1}^m{\bm\lambda_i^*(t)\nabla f_i(\bm x^*(t)}+A^T\bm \nu^*(t)=\bm 0$$
+考虑问题\ref{general_convex_prob}的拉格朗日函数式\eqref{lagrange_function}，其关于$\bm x$的导数为：
+$$\frac{\partial L(\bm x,\bm \lambda,\bm \nu)}{\partial\bm x}=
+\nabla f_0(\bm x)+\sum_{i=1}^m{\bm\lambda_i\nabla f_i(\bm x)}+A^T\bm\nu$$
+代入$\bm x^*(t),\bm\lambda_i^*(t),\bm\nu^*(t)$恰好为零，说明拉格朗日函数在
+$\bm x^*(t)$取极大值，这样就可以求得
+\begin{flalign}
+    \begin{aligned}
+    g(\bm\lambda^*(t),\bm\nu^*(t))&=f_0(\bm x^*(t))+\sum_{i=1}^m{\bm\lambda_i^*(t)f_i(\bm x^*(t))}+\bm\nu^*(t)^T(A\bm x^*(t)-\bm b)\\
+    &=f_0(\bm x^*(t))-m/t
+    \end{aligned}&&&
+\end{flalign}
+
+由$g(\bm\lambda^*(t),\bm\nu^*(t))\le d*=p*\le f_0(\bm x^*(t))$，
+可知当$t\rightarrow\infty$，$\bm x^*(t)$从中心路径收敛于最优解的同时，$\bm\lambda^*(t),\bm\nu^*(t)$也收敛于
+对偶问题的最优解，$f_0(\bm x^*(t))$与$g(\bm\lambda^*(t),\bm\nu^*(t))$分别作为上下界逼近最优解。由此得到启发，可以同时迭代$\bm x,\bm\lambda,\bm\nu$来接近
+最优解。
+
+对KKT条件式\eqref{kkt}进行修改得到式\eqref{kkt_modified}。式\eqref{kkt_modified}与\eqref{kkt}的唯一区别
+就是第三组等式$\lambda_if_i(\bm x)=0$改成了$\lambda_if_i(\bm x)=1/t$。
+这是从中心点和其对偶点的关系启发得到的。
+\begin{equation}
+    \label{kkt_modified}
+    \begin{gathered}
+    A\bm x=\bm b,f_i(\bm x)\le 0,i=1,...,m \\
+    \bm\lambda\succeq \bm 0 \\
+    \lambda_if_i(\bm x)=1/t,i=1,...,m\\
+    \nabla f_0(\bm x)+\sum_{i=1}^m{\lambda_i}\nabla f_i(\bm x)+A^T\bm\nu=\bm 0\\
+    \end{gathered}
+\end{equation}
+现在希望$\bm\lambda,\bm\nu$能和$\bm x$一起用牛顿法迭代求解。为方便表述，
+将式\eqref{kkt_modified}中的等式方程写成$\bm r_t(\bm x,\bm\lambda,\bm\nu)=\bm 0$。$r_t(\bm x,\bm\lambda,\bm\nu)$由
+式\eqref{kkt_vector_form}给出：
+\begin{equation}
+\label{kkt_vector_form}
+\bm r_t(\bm x,\bm\lambda,\bm\nu)=\begin{pmatrix}
+    \nabla f_0(\bm x)+\text{D}\textbf{f}(\bm x)^T\bm\lambda+A^T\bm\nu \\
+    -\textbf{diag}(\bm\lambda)\textbf{f}(\bm x)-(1/t)\bm 1 \\
+    A\bm x-\bm b
+\end{pmatrix}
+\end{equation}
+其中$\textbf{f}(\bm x)=\begin{pmatrix}
+    f_1(\bm x) \\
+    \vdots \\
+    f_m(\bm x)
+\end{pmatrix}$，$\text{D}\textbf{f}(\bm x)=\begin{pmatrix}
+    \nabla f_1(\bm x)^T \\
+    \vdots \\
+    \nabla f_m(\bm x)^T
+\end{pmatrix}$是$\textbf{f}(\bm x)$的雅可比矩阵。
+
+从$(\bm x,\bm\lambda,\bm\nu)$要求迭代方向$(\Delta\bm x,\Delta\bm\lambda,\Delta\bm\nu)$。令$$\bm r_t(\bm x+\Delta\bm x,\bm\lambda+\Delta\bm\lambda,\bm\nu+\Delta\bm\nu)=\bm 0$$
+类似于牛顿法的分析，利用$f(\bm x+\Delta\bm x)\approx f(\bm x)+\nabla f(\bm x)\Delta\bm x,\nabla f(\bm x+\Delta \bm x)\approx\nabla f(\bm x)+\nabla^2f(\bm x)\Delta \bm x$的近似，并舍弃带有$\Delta\bm\lambda\Delta\bm x$的项，得到式\eqref{prim_dual_direction}
+\begin{equation}
+    \label{prim_dual_direction}\begin{pmatrix}
+    \nabla^2f_0(\bm x)+\sum\limits_{i=1}^m{\lambda_i\nabla^2f_i(\bm x)} & \text{D}\textbf{f}(\bm x)^T & A^T \\
+    -\textbf{diag}(\bm\lambda)\text{D}\textbf{f}(\bm x) & -\textbf{diag}(\textbf{f}(\bm x)) & 0 \\
+    A & 0 & 0
+\end{pmatrix}\begin{pmatrix}
+    \Delta\bm x\\
+    \Delta\bm\lambda\\
+    \Delta\bm\nu
+\end{pmatrix}=-\bm r_t\end{equation}
 \section{理论分析}
 \subsection{可行性分析}
 \subsection{时间复杂度分析}
