@@ -2,10 +2,14 @@
 \usepackage[UTF8]{ctex}
 \usepackage{amsfonts}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage[ruled,vlined]{algorithm2e}
 \usepackage{bm}
+% \usepackage{calrsfs}
+\usepackage[margin=1.5in]{geometry}
 
 \newtheorem{problem}{问题}
+\newtheorem{thm}{定理}
 
 \title{题目待定}
 \author{张瑜安\\ 计算机科学与技术学院 \\21921060}
@@ -26,7 +30,7 @@
 同时将优化问题变成求解最优条件的问题，就可以使用牛顿法来解。本文介绍两种思路相承接的方法，
 第一类是直接应用障碍函数、从中心路径逼近的方法，第二类是考虑对偶变量一起优化的原始
 对偶方法。其实后者是前者的一个扩展，在ref（方法）一节中将会展示如何从第一种方法
-启发得到第二种，这种启示思路来自于ref（Convex Optimization）一书。
+启发得到第二种，这种启示思路来自于ref（Convex Optimiza tion）一书。
 
 
 \section{背景调研}
@@ -59,6 +63,7 @@ programming）一书就在用障碍函数做凸优化。到上世纪六十年代
 第七章介绍了内点法的应用，最后，第九章对内点法做了总结。
 \section{记号和预备知识}
 \subsection{记号}
+本文主要算法的符号沿用ref Convex Optimization
 $\mathbb{R}$ $\mathbb{R}_+$
 $\bm x$ $\textbf{dom}f$
 $\succeq$
@@ -67,7 +72,15 @@ $n$维数 $m$约束个数
 $\textbf{f}(\bm x)$函数$\mathbb{R}^n\rightarrow\mathbb{R}^m$
 $\text{D}\textbf{f}(\bm x)$雅可比矩阵1
 $\textbf{diag}$
+$C_M^{2,2}$
+$\|\|_123$
+$bm\lambda_i \lambda_i$区别，迭代和分量下标
+$\mathcal{S}_{\mu,L}^{2,2}(\mathbb{R}^n)$
+$\log$没有写底数时是$\ln$
+$\mathcal O$
+$\bm c,\bm$
 \subsection{预备知识}
+\label{pre_know}
 本文考虑的凸优化问题具有如下形式：
 \begin{problem}
 最小化$f_0(\bm x)$，使得$f_i(\bm x)\le 0(i=1,2,...,m),A\bm x=\bm{b}$成立，其中$f_i(\bm x):\mathbb{R}^n\rightarrow\mathbb{R}(i=0,1,...,m)$均为凸函数，$A\in\mathbb{R}^{p\times n},\bm b\in\mathbb{R}^p$。
@@ -105,10 +118,10 @@ $$f_i(\bar{\bm x})<0(i=1,...,m),A\bar{\bm x}=\bm b$$
 
 不考虑不等式约束，仅考虑等式约束，那么上述KKT条件简化为：
 \begin{equation}
-    A\bm x^*=\bm b,\nabla f_0(x^*)+A^T\bm\nu ^*=\bm 0\label{equation_constraint_kkt}
+    A\bm x^*=\bm b,\nabla f_0(\bm x^*)+A^T\bm\nu ^*=\bm 0\label{equation_constraint_kkt}
 \end{equation}
 
-加强$f_0(\bm x)$，假设其\textbf{二阶可微}，那么就可以用牛顿法求解约束\eqref{equation_constraint_kkt}中的
+加强$f_0(\bm x)$，假设$f_0(\bm x)\in C_M^{2,2}(\mathbb{R}^n)$，那么就可以用\textbf{牛顿法}求解约束\eqref{equation_constraint_kkt}中的
 $\bm x^*$。用$\bm x+\Delta \bm x$代替式\eqref{equation_constraint_kkt}
 中的$\bm x^*$，并对$\nabla f_0(\bm x+\Delta \bm x)$做一阶近似就可以得到
 计算迭代方向$\Delta \bm x$的方程：
@@ -125,9 +138,19 @@ $\bm x^*$。用$\bm x+\Delta \bm x$代替式\eqref{equation_constraint_kkt}
     -\Delta f_0(\bm x)\\
     \bm 0
 \end{pmatrix}\label{newton_for_equation}\end{equation}
-如果我们能找到一个初始可行点$\bm x_0$，就可以用$x_k=x_{k-1}+\mu \Delta \bm x$来求解$\bm x^*$。到此为止，
-我们有了一个求解仅含等式约束的凸优化问题的牛顿方法。
-下一章将会介绍如何利用障碍函数将不等式约束融合进目标函数，从而可以使用此处所描述
+如果我们能找到一个初始可行点$\bm x_0$，就可以用$\bm x_k=\bm x_{k-1}+h\Delta \bm x$来求解$\bm x^*$。
+牛顿法将会经历两个阶段：
+\begin{enumerate}
+    \item \textbf{阻尼阶段}。在达到快速收敛域之前，$h$的选择使用\textbf{回溯直线搜索}策略，上课提到这个策略是在Proximal Gradient Method，
+    其直线搜索的目标是Lipschitz常量，不过我们这里
+    直线搜索的目标是\textbf{Goldstein-Armijio规则}：引入$0<\alpha< 0.5$参数来控制$h$满足$f(\bm x+h\Delta\bm x)\le f(\bm x)+\alpha h\nabla f(\bm x)^T\Delta\bm x$。我们在搜索中
+    每次将$h$乘以$0<\sigma<1$直到$h$满足该规则。
+    （Goldstein-Armijio规则还有引入$\beta$进行下界控制，不过不影响后续复杂度分析，所以未使用此规则）
+    \item \textbf{二次收敛阶段}。足够接近最优解时，收敛速度很快，一般取$h=1$。
+\end{enumerate}
+上面两个阶段的收敛速度分析会在\ref{time_complexity_newton}介绍。
+到此为止，我们有了一个求解仅含等式约束的凸优化问题的牛顿方法。
+\ref{text_barrier_method}将会介绍如何利用障碍函数将不等式约束融合进目标函数，从而可以使用此处所描述
 的牛顿法求解。
 \label{text4_2}
 \section{方法}
@@ -161,7 +184,7 @@ $$\widehat I_-(u)=-(1/t)\log(-u)$$
 和问题\ref{barrier_problem}的目标函数就越接近，其解也越接近。
 目标函数中的对数惩罚部分$\phi(\bm x)=-\sum_{i=1}^m\log (-f_i(\bm x))$被称做问题\ref{general_convex_prob}的\textbf{对数障碍函数}。
 
-当$f_i(\bm x),i=0,...,m$\textbf{二阶可微}时，问题\ref{barrier_approx_prob}就可以应用\ref{text4_2}中
+当$f_i(\bm x)\in C_M^{2,2},i=0,...,m$时，问题\ref{barrier_approx_prob}就可以应用\ref{text4_2}中
 的牛顿方法。一个朴素的思路是直接设一个很大$t$，计算在$t$下问题$\ref{barrier_approx_prob}$的解。
 但是$t$很大时，目标函数的Hessian矩阵在可行域边界剧烈变动。所以在\ref{text_barrier_method}中
 的方法考虑逐渐增加$t$，解决一系列的问题\ref{barrier_approx_prob}来规避这个问题。
@@ -181,10 +204,10 @@ $$A\bm x^*(t)=\bm b,f_i(\bm x^*(t))<0,i=1,...,m$$
 \begin{equation}\nabla f_0(\bm x^*(t))+(1/t)\nabla\phi(\bm x^*(t))+A^T\widehat{\bm \nu}=\bm 0\label{center_path_kkt}\end{equation}
 把式\eqref{center_path_kkt}中$\phi$的梯度展开写就是：
 \begin{equation}
-    \nabla f_0(\bm x^*(t))+\sum_{i=1}^m{\frac{1}{-tf_i(\bm x^*(t))}\nabla f_i(\bm x^*(t)}+A^T\widehat{\bm \nu}=\bm 0\label{center_path_kkt_2}
+    \nabla f_0(\bm x^*(t))+\sum_{i=1}^m{\frac{1}{-tf_i(\bm x^*(t))}\nabla f_i(\bm x^*(t))}+A^T\widehat{\bm \nu}=\bm 0\label{center_path_kkt_2}
 \end{equation}
 
-在\ref{time_complexity}将会证明$f_0(\bm x^*(t))-p^*\le m/t$，即中心点的函数值
+在\ref{center_to_dual}将会证明$f_0(\bm x^*(t))-p^*\le m/t$，即中心点的函数值
 和最优解相差不超过$m/t$，从而我们可以在求解过程中对精度进行控制。
 从该结论也可以得出当$t\rightarrow\infty$时，$\bm x^*(t)$从中心路径逼近原问题的解。下一节介绍从中心路径逼近最优解的方法。
 \label{text_barrier_center_path}
@@ -200,7 +223,7 @@ $$A\bm x^*(t)=\bm b,f_i(\bm x^*(t))<0,i=1,...,m$$
     \For {$i \gets 0\dots \infty $} {
         从$\bm x_i$出发，在$A\bm x=\bm b$约束下极小化$f_0(\bm x)+(1/t)\phi(\bm x)$，解出中心点$\bm x_i^*(t)$\;
         $\bm x_{i+1}\leftarrow\bm x_i^*(t)$\;
-        \If{$m/t_i<\epsilon$} {
+        \If{$m/t<\epsilon$} {
             \Return $\bm x_{i+1}$
         }
         $t\leftarrow \mu t$
@@ -223,31 +246,35 @@ $$A\bm x^*(t)=\bm b,f_i(\bm x^*(t))<0,i=1,...,m$$
         \label{prepare}
     \end{problem}
 \end{enumerate} 
-对算法的参数$t$和$\mu$进行简单分析：
-\begin{enumerate}
-    \item 如果$\mu$较小，$t$变化之后，$x^*(t)$变化也较小，所以上一次迭代终点会是这次
-    迭代很好的初始点。这样内层的牛顿迭代次数会很少，但是外层的$t$达到$m/\epsilon$要经过很多次的迭代。
-    反之，如果$\mu$较大，内层迭代次数偏多，外层迭代次数减少。
-    不过$\mu$对总的迭代次数影响并不是很大，实践中可以调参。
-    \item 外层参数$t$的迭代无法和内层迭代一起适应性的变化，即$t$必须等到一次牛顿迭代完成后才能变化。这是该算法的效率瓶颈之一。
-\end{enumerate}
+此处不详细介绍参数$\mu$如何影响效率以及如何调整，只简要说明。如果$\mu$较小，内层的牛顿迭代次数会很少，但是外层的$t$达到$m/\epsilon$要经过很多次的迭代。
+反之，如果$\mu$较大，内层迭代次数偏多，外层迭代次数减少。实践中按需确定，一般取10～20。
+
+思考如何让障碍方法更快。事实上，上一轮牛顿迭代的结果会被拿来做下一轮的初始点，再
+精确也没用，所以其实前几轮的精度要求不需要很高，只要在接近边缘的时候才需要较高的精度，
+所以前几轮牛顿迭代甚至可以压缩到只迭代一次。
+事实上，接下来\label{prim_dual_method}介绍的原始对偶方法，本质上还是粗略地
+从中心路径接近最优解，不过用一次迭代代替一轮牛顿迭代。然而原始对偶法
+并非障碍方法简单粗暴的改版，每次迭代还考虑了和对偶问题一起优化，因而精度和效率并存。
+
 \subsection{原始对偶方法}
-\label{prim_dual_method}
+\subsubsection{从中心路径到对偶问题}
+\label{center_to_dual}
 中心路径和对偶问题有着十分紧密的联系。对固定的$t$，中心点是$\bm x^*(t)$，
 取$\bm\lambda_i^*(t)=-\frac{1}{tf_i(\bm x^*(t))},i=1,...,m$,令$\bm \nu^*(t)$为式\eqref{center_path_kkt}中的$\widehat{\bm\nu}$。
 根据式\eqref{center_path_kkt_2}有：
-$$\nabla f_0(\bm x^*(t))+\sum_{i=1}^m{\bm\lambda_i^*(t)\nabla f_i(\bm x^*(t)}+A^T\bm \nu^*(t)=\bm 0$$
+$$\nabla f_0(\bm x^*(t))+\sum_{i=1}^m{\bm\lambda_i^*(t)\nabla f_i(\bm x^*(t))}+A^T\bm \nu^*(t)=\bm 0$$
 考虑问题\ref{general_convex_prob}的拉格朗日函数式\eqref{lagrange_function}，其关于$\bm x$的导数为：
 $$\frac{\partial L(\bm x,\bm \lambda,\bm \nu)}{\partial\bm x}=
 \nabla f_0(\bm x)+\sum_{i=1}^m{\bm\lambda_i\nabla f_i(\bm x)}+A^T\bm\nu$$
 代入$\bm x^*(t),\bm\lambda_i^*(t),\bm\nu^*(t)$恰好为零，说明拉格朗日函数在
 $\bm x^*(t)$取极大值，这样就可以求得
-\begin{flalign}
+\begin{equation}
+    \label{dual_margin}
     \begin{aligned}
     g(\bm\lambda^*(t),\bm\nu^*(t))&=f_0(\bm x^*(t))+\sum_{i=1}^m{\bm\lambda_i^*(t)f_i(\bm x^*(t))}+\bm\nu^*(t)^T(A\bm x^*(t)-\bm b)\\
     &=f_0(\bm x^*(t))-m/t
-    \end{aligned}&&&
-\end{flalign}
+    \end{aligned}
+\end{equation}
 
 由$g(\bm\lambda^*(t),\bm\nu^*(t))\le d*=p*\le f_0(\bm x^*(t))$，
 可知当$t\rightarrow\infty$，$\bm x^*(t)$从中心路径收敛于最优解的同时，$\bm\lambda^*(t),\bm\nu^*(t)$也收敛于
@@ -266,7 +293,9 @@ $\bm x^*(t)$取极大值，这样就可以求得
     \nabla f_0(\bm x)+\sum_{i=1}^m{\lambda_i}\nabla f_i(\bm x)+A^T\bm\nu=\bm 0\\
     \end{gathered}
 \end{equation}
-现在希望$\bm\lambda,\bm\nu$能和$\bm x$一起用牛顿法迭代求解。为方便表述，
+
+\subsubsection{原始对偶搜索方向}
+现在希望对式\eqref{kkt_modified}中的$\bm\lambda,\bm\nu,\bm x$用牛顿法迭代求解。为方便表述，
 将式\eqref{kkt_modified}中的等式方程写成$\bm r_t(\bm x,\bm\lambda,\bm\nu)=\bm 0$。$r_t(\bm x,\bm\lambda,\bm\nu)$由
 式\eqref{kkt_vector_form}给出：
 \begin{equation}
@@ -287,8 +316,13 @@ $\bm x^*(t)$取极大值，这样就可以求得
     \nabla f_m(\bm x)^T
 \end{pmatrix}$是$\textbf{f}(\bm x)$的雅可比矩阵。
 
-从$(\bm x,\bm\lambda,\bm\nu)$要求迭代方向$(\Delta\bm x,\Delta\bm\lambda,\Delta\bm\nu)$。令$$\bm r_t(\bm x+\Delta\bm x,\bm\lambda+\Delta\bm\lambda,\bm\nu+\Delta\bm\nu)=\bm 0$$
-类似于牛顿法的分析，利用$f(\bm x+\Delta\bm x)\approx f(\bm x)+\nabla f(\bm x)\Delta\bm x,\nabla f(\bm x+\Delta \bm x)\approx\nabla f(\bm x)+\nabla^2f(\bm x)\Delta \bm x$的近似，并舍弃带有$\Delta\bm\lambda\Delta\bm x$的项，得到式\eqref{prim_dual_direction}
+将式\eqref{kkt_vector_form}中$\bm r_t$的第一部分$\bm r_{dual}=\nabla f_0(\bm x)+\text{D}\textbf{f}(\bm x)^T\bm\lambda+A^T\bm\nu$称为对偶残差，第三部分$\bm r_{prim}=A\bm x-\bm b$称为原始残差，叫这个名字是因为这两者
+分别可以用来衡量$\bm\lambda,\bm\nu$、$\bm x$和对偶最优解、原问题最优解的接近程度。
+而第二部分$\bm r_{cent}=-\textbf{diag}(\bm\lambda)\textbf{f}(\bm x)-(1/t)\bm 1$可以用来衡量$\bm x$和中心点$\bm x^*(t)$的接近程度，因而
+称其为中心残差。$\bm r_{dual}$和$\bm r_{prim}$接近于零意味着接近对偶问题和原始问题的解，中心残差则用于控制迭代的时候在中心路径附近。
+
+要求$(\bm x,\bm\lambda,\bm\nu)$处的迭代方向$(\Delta\bm x,\Delta\bm\lambda,\Delta\bm\nu)$。令$$\bm r_t(\bm x+\Delta\bm x,\bm\lambda+\Delta\bm\lambda,\bm\nu+\Delta\bm\nu)=\bm 0$$
+类似于牛顿法的分析，利用$f(\bm x+\Delta\bm x)\approx f(\bm x)+\nabla f(\bm x)\Delta\bm x,\nabla f(\bm x+\Delta \bm x)\approx\nabla f(\bm x)+\nabla^2f(\bm x)\Delta \bm x$的近似，并舍弃带有$\Delta\bm\lambda\Delta\bm x$的项，得到式\eqref{prim_dual_direction}。
 \begin{equation}
     \label{prim_dual_direction}\begin{pmatrix}
     \nabla^2f_0(\bm x)+\sum\limits_{i=1}^m{\lambda_i\nabla^2f_i(\bm x)} & \text{D}\textbf{f}(\bm x)^T & A^T \\
@@ -298,12 +332,211 @@ $\bm x^*(t)$取极大值，这样就可以求得
     \Delta\bm x\\
     \Delta\bm\lambda\\
     \Delta\bm\nu
-\end{pmatrix}=-\bm r_t\end{equation}
+\end{pmatrix}=-\bm r_t(\bm x,\bm \lambda,\bm\nu)\end{equation}
+
+不同于障碍方法一轮牛顿迭代能找到可行解$x^*(t)$，上述计算过程中$\bm x$可能是不可行的，
+$\bm\lambda,\bm\nu$同样也可能是对偶不可行的，因此不好算对偶间隙来计算误差上限。
+但是收敛到一定程度后，对偶间隙可以用$\eta =-\bm f(\bm x)^T\bm\lambda$估计，这需要$\bm r_{dual},\bm r_{prim}$几乎等于零，
+即$\bm\lambda,\bm\nu$、$\bm x$都可行。因此算法描述中会对$\bm r_t$三部分$\bm r_{dual},\bm r_{prim},\bm r_{cent}$的模长分别做判断，
+而不是简单的控制$\|\bm r_t\|_2<\epsilon$。
+
+\subsubsection{算法描述}
+式\eqref{prim_dual_direction}给出了搜索方向，同时我们也讨论了误差上限的估计，至此可以给出
+原始对偶方法：
+
+\renewcommand{\algorithmcfname}{算法}
+\begin{algorithm}[H]
+    % \SetKwInOut{KIN}{输入}
+    % \SetKwInOut{KOUT}{输出}
+    \KwIn {$\bm x_0$满足$\bm f(\bm x_0)\prec \bm 0,\bm\lambda_0 \succ \bm 0,\bm\nu_0$，参数$t>0,\mu>1$，可行误差阈值$\epsilon_{feas}>0$和误差阈值$\epsilon>0$}
+    \For {$i \gets 0\dots \infty $} {
+        计算$(\Delta\bm x,\Delta\bm\lambda,\Delta\bm\nu)$\;
+        确定$s>0$，$(\bm x_{i+1},\bm\lambda_{i+1},\bm\nu_{i+1})\leftarrow (\bm x_i,\bm\lambda_i,\bm\nu_i)+s(\Delta\bm x,\Delta\bm \lambda,\Delta\bm \nu)$\;
+        $\eta\leftarrow-\bm f(\bm x_i)\bm \lambda_i$\;
+        $t\leftarrow \mu m/\eta$\;
+        \If{$\|\bm r_{dual}\|_2<\epsilon_{feas}$ {\bf{and}} $\|\bm r_{prim}\|_2<\epsilon_{feas}$ \bf{and} $\eta\le\epsilon$} {
+            \Return $\bm x_{i+1}$
+        }
+
+    }
+    \caption{原始对偶法}
+    \label{prim_dual_method}
+\end{algorithm}
+其中$s$的确定是希望找到尽可能大的$s$，使得$\bm \lambda_{i+1}\succ \bm 0,\bm f(\bm x_{i+1})\prec\bm 0$，
+同时$r_t$更小，同样用回溯直线搜索策略，不过并不使用Goldstein-Armijio规则。描述该策略如下：
+\begin{enumerate}
+    \item 计算最大的$s_{max}\le 1$使得$\bm\lambda+s_{max}\Delta\bm\lambda\succeq \bm 0$，令$s_0=0.99s_{max}$以保证$\bm\lambda+s_{0}\Delta\bm\lambda\succ \bm 0$。
+    \item 迭代$s_k=\sigma s_{k-1},0<\sigma<1$，直到$f(\bm x+s_k\Delta\bm x)\prec 0$
+    \item 继续迭代$s_k=\sigma s_{k-1}$，直到$\|r(\bm x+\Delta\bm x,\bm\lambda+\Delta\bm\lambda,\bm\nu+\Delta\bm\nu)\|_2\le(1-\alpha s)\|r_t(\bm x,\bm\lambda,\bm\nu)\|_2$
+\end{enumerate}
+
 \section{理论分析}
-\subsection{可行性分析}
 \subsection{时间复杂度分析}
+在本章中，我们假定了$f(\bm x)\in\mathcal{S}_{\mu,L}^{2,2}(\mathbb{R}^n)$来分析复杂度，但是
+更好的方式是使用\textbf{自和谐函数分析}，因为实际问题中$\mu,L$往往不可知，无法计算确切的迭代次数上界。这两种分析都涵盖了\textbf{线性规划}和\textbf{二次规划}。
+
+另外本文并不会分析
+一类问题的复杂度下界或者一类方法的复杂度上界。
+\subsubsection{牛顿法分析}
+先考虑内层牛顿迭代次数。上课已经讲到了牛顿法的局部收敛分析，即\ref{pre_know}提到的二阶收敛阶段。直接引用其结论：
+\begin{thm}
+    \label{newton_converge}
+    若$f(\bm x)\in\mathcal{S}_{\mu,L}^{2,2}(\mathbb{R}^n)$，那么从满足$\|\bm x_0-\bm x^*\|<\bar r=\frac{2\mu}{3L}$的$\bm x_0$开始，牛顿法迭代产生的{$\bm x_k$}序列满足$\|\bm x_k-\bm x^*\|<\bar r,\|\bm x_{k+1}-\bm x^*\|\le \frac{L\|\bm x_k-\bm x^*\|^2}{2(\mu-L\|\bm x_k-\bm x^*\|)}$对所有非负整数$k$成立。
+\end{thm}
+根据定理\ref{newton_converge}，牛顿法在最优解附近二次收敛，将这部分迭代次数记为$\mathcal O(\log_2\log_2(1/\epsilon))$，其中$\epsilon$是误差阈值。
+
+然而我们的方法中没有假定$\bm x_0$和$\bm x^*$足够近，因此还有阻尼阶段的收敛分析。有如下定理：
+\begin{thm}
+    \label{newton_converge_2}
+    $f(\bm x)\in\mathcal{S}_{\mu,L}^{2,2}(\mathbb{R}^n)$，在$\|\bm x-\bm x^*\|\ge \bar r=\frac{2\mu}{3L}$的$\bm x$区域内迭代，即牛顿法尚未进入快速收敛阶段时，
+    存在常数$\gamma>0$使得$f(\bm x_{k+1})-f(\bm x_k)\le -\gamma$，即每次迭代至少使函数值减少$\gamma$。
+\end{thm}
+\begin{proof}
+$\mathcal S_{\mu,L}^{2,2}$隐含了一阶Lipschitz连续，二阶导有界，即存在常数$M>0$使得$\nabla^2f(\bm x)\preceq MI_n$。
+由凸函数性质，
+\begin{align*}
+    f(\bm x+h\Delta\bm x)& \le f(\bm x)+h\nabla f(\bm x)^T\Delta\bm x+\frac{M\|\Delta\bm x\|^2}{2}h^2 \\
+    & \le f(\bm x)+h\nabla f(\bm x)^T\Delta\bm x-\frac{M}{2\mu}h^2\Delta\bm x^T\nabla^2f(\bm x)\Delta\bm x\\
+    & = f(\bm x)+(h-\frac{M}{2\mu}h^2)\nabla f(\bm x)^T\Delta\bm x
+\end{align*}
+其中第二步推导利用了$\nabla^2f(\bm x)\succeq \mu I_n$，
+第三步推导是因为牛顿法选取的$\Delta \bm x$满足$\bm 0=\nabla f(\bm x)+\nabla^2f(\bm x)\Delta \bm x$
+。取$\widehat h=\mu/M$，有
+\begin{equation}
+\label{armijio}
+\begin{aligned}
+    f(\bm x+\widehat h\Delta \bm x)&\le f(\bm x)+\frac{\mu}{2M}\nabla f(\bm x)^T\Delta\bm x\\
+    &< f(\bm x)+\frac{\alpha \mu}{M}\nabla f(\bm x)^T\Delta\bm x\\
+    &=f(\bm x)+\alpha \widehat h\nabla f(\bm x)^T\Delta\bm x
+\end{aligned}
+\end{equation}
+其中$\alpha$是Goldstein-Armijio规则中的参数，\ref{pre_know}中提到取$\alpha<1/2$，所以第二步缩放成立。式\eqref{armijio}恰好就是Goldstein-Armijio的约束。\ref{pre_know}中已经介绍过，
+我们在回溯直线搜索中每次让$h$乘以$\sigma$，所以最终找到的$h$至少满足$h\ge \sigma\widehat h=\sigma\mu/M$。对于这样的$h$，根据Goldstein-Armijio规则，
+\begin{align*}
+    f(\bm x+h\Delta\bm x)-f(\bm x)&\le \alpha h\nabla f(\bm x)^T\Delta\bm x \\
+    & \le -\alpha\sigma\frac{\mu}{M}\nabla f(\bm x)^T\nabla^2f(\bm x)^{-1}\nabla f(\bm x) \\
+    & \le -\alpha\sigma\frac{\mu}{M^2}\|\nabla f(\bm x)\|^2 \\
+    & \le -\alpha\sigma\eta^2\frac{\mu}{M^2}
+\end{align*}
+其中常数$\eta$是$\|\nabla f(\bm x)\|$的下界，由于$\|\bm x-\bm x^*\|\ge \frac{2\mu}{3L}$，所以$\eta > 0$，所以存在常数$\gamma=\alpha\sigma\eta^2\frac{\mu}{M^2}>0$，使得
+$\bm x$距离$\bm x^*$较远时，每次迭代函数值至少减少$\gamma $。
+
+\end{proof}
+由定理\ref{newton_converge}和定理\ref{newton_converge_2}可以估计牛顿法迭代次数为$\mathcal O((f(\bm x_0)-p^*)/\gamma+\log_2\log_2(1/\epsilon))$。
+\label{time_complexity_newton}
+
+\subsubsection{障碍方法分析}
+考虑一轮牛顿迭代，有如下定理：
+\begin{thm}
+    \label{newton_barrier_ana}
+    令$t_k=\mu^kt_0,k=1,2,...$，用牛顿法解$t=t_{k+1}(k\ge 0)$时的问题\ref{barrier_approx_prob_simple}，初始点为$\bm x_k=\bm x^*(t_{k})$，解出$\bm x_{k+1}=\bm x^*(t_k+1)$，那么牛顿迭代的次数为
+    $\mathcal O(m(\mu-1-\log\mu)/\gamma+\log_2\log_2(1/\epsilon))$
+\end{thm}
+注意\ref{time_complexity_newton}小节中的$\mu$是凸参数，但定理\ref{newton_barrier_ana}的$\mu$是算法\ref{barrier_method}中的参数。对定理\ref{newton_barrier_ana}进行证明：
+\begin{proof}
+    综合定理\ref{newton_converge}和定理\ref{newton_converge_2}，写出定理\ref{newton_barrier_ana}牛顿法的迭代次数：
+    $$\frac{\mu tf_0(\bm x_{k})+\phi(\bm x_k)-\mu tf_0(\bm x_{k+1})-\phi(\bm x_{k+1})}{\gamma}+\log_2\log_2(1/\epsilon)$$
+    其中为了简化符号让问题\ref{barrier_approx_prob_simple}的目标函数乘了$t$。对第一项的分子进行缩放：
+\begin{align*}
+\mu tf_0&(\bm x_{k})+\phi(\bm x_k)-\mu tf_0(\bm x_{k+1})-\phi(\bm x_{k+1}) \\
+&=\mu tf_0(\bm x_{k})-\mu tf_0(\bm x_{k+1})+\sum_{i=1}^m{\log(-\mu t\lambda_if(\bm x_{k+1}))-m\log \mu} \\
+&\le \mu tf_0(\bm x_k)-\mu tf_0(\bm x_{k+1})-\mu t\sum_{i=1}^m{\lambda_i f_i(\bm x_{k+1})}-m-m\log \mu \\
+&=\mu tf_0(\bm x_k)-\mu t\Big(f_0(\bm x_{k+1})+\sum_{i=1}^m{\lambda_if_i(\bm x_{k+1})}+\bm \nu^T(A\bm x_{k+1}-\bm b)\Big)-m-m\log\mu\\
+&\le \mu tf_0(\bm x_k)-\mu tg(\bm \lambda^*(t_k),\bm \nu^*(t_k))-m-m\log\mu\\
+&=m(\mu-1-\log\mu)
+\end{align*}
+其中第一步变形
+利用了$\lambda_if_i(\bm x)=1/t$，第二步放缩是不等式$x-1\ge \log x$，第三步变形是凑拉格朗日函数的形式，
+第四步根据是$g(\lambda,\nu)$的定义，第五步用了式\eqref{dual_margin}。
+\end{proof}
+该证明来自于(ref convex optimization Chap11)，其中的放缩相当具有技巧性，主干思路是凑$\bm x_{k+1}$处的对拉格朗日函数，然后放缩到$\bm x_k$处的极值，从而消去$\bm x_{k+1}$。
+
+到此为止，我们有了一轮牛顿法的迭代次数。根据式\eqref{dual_margin}，初始误差最大为$m/t_0$，每轮迭代$t_{k+1}=\mu t_k$，因而迭代轮数为
+$\mathcal O(\log_\mu(\frac{m}{t_0\epsilon}))$。结合定理\ref{newton_barrier_ana}，并将$\log_2\log_2(1/\epsilon)$视作常数$c$，总的牛顿迭代次数上界为
+$$\log_\mu(\frac{m}{t_0\epsilon})\Big(m(\mu-1-\log\mu)/\gamma+c\Big)$$
+
+取$\mu=1+\frac{1}{\sqrt{m}}$，那么迭代次数为
+$$\mathcal O(\log_\mu(\frac{m}{t_0\epsilon})\Big(m(\mu-1-\log\mu)/\gamma+c\Big))=O(\sqrt m\log \frac{m}{t_0\epsilon})$$
+牛顿迭代最慢的数值计算是求Hessian的逆，因而算法\ref{barrier_method}总复杂度
+为$$\mathcal O((n^3+K)\sqrt m\log \frac{m}{t_0\epsilon})$$
+其中$K$是Hessian和梯度的Oracle操作代价。如果我们的最终目标不是控制误差在$\epsilon$之内，
+而是将误差压缩固定倍数，即$\frac{m}{t_0\epsilon}$是常数，那么迭代次数是$\mathcal O(\sqrt m)$，这也是这类方法能做到的最好上界。
+\label{time_complexity_barrier}
+\subsubsection{原始对偶方法}
+算法\ref{prim_dual_method}的复杂度不好分析，退而求其次，我们证明\textbf{二次规划}问题使用算法\ref{prim_dual_method}求解的复杂度是
+$\mathcal O(\sqrt{m}\log\frac{1}{\epsilon})$的。我们考虑的二次规划问题描述如下：
+\begin{problem}
+    \label{quad_problem}
+    最小化$\bm c^T\bm x+\frac{1}{2}\bm x^T\bm Q\bm x$，使得$\bm A\bm x=\bm b,\bm x\preceq \bm 0$
+\end{problem}
+其中$\bm c\in \mathbb{R}^n,\bm Q\in \mathbb{R}^{n\times n},\bm A\in\mathbb{R}^{p\times n},\bm b\in \mathbb{R}^p$且$\bm Q\succeq 0$。
+
+问题\ref{quad_problem}经过变形可以去掉等式约束，但是我们为了
+和一般凸问题\ref{general_convex_prob}对齐，可以沿用各类符号，保留了等式约束。
+注意不等式约束个数$m=n$，所以接下来$n$不再出现，全部用$m$代替。
+
+二次规划下，式\eqref{kkt_vector_form}和\eqref{prim_dual_direction}分别变成式\eqref{eq_rt_quad}和\eqref{eq_direction_quad}。
+\newcommand{\bx}{\bm x}
+\newcommand{\bl}{\bm \lambda}
+\newcommand{\bn}{\bm \nu}
+\newcommand{\bQ}{\bm Q}
+\newcommand{\bA}{\bm A}
+\newcommand{\AT}{\bm A^T}
+\newcommand{\bc}{\bm c}
+\newcommand{\bb}{\bm b}
+\newcommand{\diaglambda}{\textbf{diag}(\bm\lambda)}
+\newcommand{\diagx}{\textbf{diag}(\bm x)}
+\newcommand{\be}{\bm 1}
+\newcommand{\dx}{\Delta\bm x}
+\newcommand{\dl}{\Delta\bm \lambda}
+\newcommand{\dn}{\Delta\bm \nu}
+\begin{equation}
+    \label{eq_rt_quad}
+    r_t(\bx,\bl,\bn)=\begin{pmatrix}
+        \bc+\bQ+\bl-\AT\bn\\
+        \diaglambda\bx-\frac{1}{t}\be\\
+        \bb-\bA\bx
+    \end{pmatrix}
+\end{equation}
+\begin{equation}
+    \label{eq_direction_quad}
+    \begin{pmatrix}
+        \bQ &\bm I_n & \AT\\
+        -\diaglambda& -\diagx & \bm 0 \\
+        \bA & 0 & 0
+    \end{pmatrix}
+    \begin{pmatrix}
+        \dx\\
+        \dl\\
+        \dn\\
+    \end{pmatrix}=
+    \begin{pmatrix}
+        \bm 0\\
+        \diaglambda\bx-\frac{1}{t}\be\\
+        \bm 0\\
+    \end{pmatrix}
+\end{equation}
+$$$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{方法对比}
+原始对偶是粗糙地控制路径在中心点附近。$t_k$用来平衡center和optimal，一开始
+$t_k$小，center性质会防止$\bm x$$\bm \lambda$过小，后来$t_k$大，那么会快速接近optimal。
+回顾障碍方法，严格得跟踪中心路径，实际上前几轮的不用太精确，后几轮要提高精度。
 \label{time_complexity}
-$f_0(\bm x^*(t))-p^*\le m/t$
 \section{应用}
 \section{总结}
 \end{document}
+
+$TODO 所有矩阵符号加粗$
