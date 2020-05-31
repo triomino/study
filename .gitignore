@@ -1,0 +1,29 @@
+## latex/bibtex
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.synctex.gz
+
+## old directory
+ads
+ai
+bs
+by
+ct
+cv
+db
+dm
+doc
+go
+hgjjxj
+kg
+mc
+ml
+na
+spider
+szdl
+webdev
+wlh
+zibian
