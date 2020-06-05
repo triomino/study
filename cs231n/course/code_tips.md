@@ -21,3 +21,9 @@ S = np.maximum(0, S - S[np.arange(num_train),y].reshape(num_train,1) + 1)
 ```python
 S[S > 0] = 0
 ```
+
+(From assignment #1, Softmax Loss & Gradient) 用 keepdims 就不用 reshape 了。
+```python
+probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+```
+Softmax 我实现的不干净，有重复运算。可以参考 https://cs231n.github.io/neural-networks-case-study/ probs 可以重复利用。
