@@ -70,3 +70,25 @@ Batch Normalization.
 直接牛顿 Hessian 计算 cost 太高。拟牛顿，Limited-memory BFGS。
 ### learning rate 适应性变化
 Adagrad RMSprop Adam
+
+# CNN
+## CNN Layer/Filter
+The connections are local in space (along width and height), but always full along the entire depth of the input volume.
+## 解释
+第一层 CNN 学 edge, blob of color 这样的特征。假定了所有地方学同样的特征是合理的，比如同一个方向的 edge。如果没有这样的假定，如中心人脸，在眼睛和嘴学不一样的特征，那么 CNN filter 的参数不再共享，也不再是 CNN，简单叫做 Locally-Connected Layer。
+## vectorized
+img2col
+## pooling
+pooling 的主要好处是快速降维。所以看效果，没有 pooling > max pooling > average pooling
+
+## Full-Connect
+固定 Size 的 FC 和 CNN 可以相互转化。FC 转成 CNN 后，如果更大的图片过来，效率会更高。
+
+## 一般 CNN 结构
+INPUT -> [[CONV -> RELU]*N -> POOL?]*M -> [FC -> RELU]*K -> FC
+
+多层 small filter 比一个 big filter 更具表达力，并且参数更少，不过中间结果内存占用更多。
+
+input 一般放缩成能被 2 整除多次，因为 pooling 是 2\*2->1\*1。一般只有 pooling 层在 downsampling，卷积层不改变大小（zero-padding 和 stride=1）。如果卷积层的 stride>1，就要格外小心 size 对不齐的问题。
+
+zero-padding 的作用不仅仅是保持 size 不变，还保留了边界的信息。直观点说，一个点会被 F*F 个卷积传到下一层，而没有 zero-padding 时，只有一个卷积把边界点信息传下去，很快边界信息就会被内部信息 "wash away"。

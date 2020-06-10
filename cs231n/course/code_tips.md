@@ -27,3 +27,9 @@ S[S > 0] = 0
 probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
 ```
 Softmax 我实现的不干净，有重复运算。可以参考 https://cs231n.github.io/neural-networks-case-study/ probs 可以重复利用。
+
+## NN
+```python
+# x[N, d1, d2, ..., dk] -> x[N, D]
+x = x.reshape(x.shape[0], -1)
+```
