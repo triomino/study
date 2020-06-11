@@ -6,6 +6,15 @@
 *.out
 *.synctex.gz
 
+## datasets
+cifar-10-batches-py
+
+## archive
+*.zip
+
+## python
+__pycache__/
+
 ## old directory
 ads
 ai

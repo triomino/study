@@ -23,6 +23,33 @@ numerical 简单，但是慢、不精确，anylytic 精确、快，但是需要�
 ## Mini-batch gradient descent
 每次取一小批数据算梯度。Mini-batch size 如果变成 1，那么就是Stochastic Gradient Descent(sometimes on-line gradient descent)，有人也会把 Minibatch 叫做 SGD。
 
+error 增加/震荡幅度大，可能是 learning rate 过大。
+
+zero-centered, scaling 有助于让 error surface “更圆”。
+
+plateau is not local mimimum
+
+### momentum
+直觉：速度的改变被拖慢了，降低震荡现象。
+改进：Nesterov Momentum (predict -> correct)
+
+### RMSprop
+一个有效的 unpublished 方法。如果是 fullbatch 每次除以 dx 的模长可以让效果更好（dx 归一，只用方向信息）。minibatch 中不能这么做，如十个 minibatch 0.1\*9+(-0.9)\*1。所以对除数做了连续处理（类似于 momentum）。
+cache = decay_rate * cache + (1 - decay_rate) * dx**2  
+x += - learning_rate * dx / (np.sqrt(cache) + eps)  
+见 https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf
+
+### Adam
+结合 RMSprop 和 Momentum，前几轮 m 和 v 太小，所以加了 bias correction.
+```python
+# t is your iteration counter going from 1 to infinity
+m = beta1*m + (1-beta1)*dx
+mt = m / (1-beta1**t)
+v = beta2*v + (1-beta2)*(dx**2)
+vt = v / (1-beta2**t)
+x += - learning_rate * mt / (np.sqrt(vt) + eps)
+```
+
 # Backpropagation / Chain rule
 $$\sigma(x)=\frac{1}{1+e^{-x}},\frac{\text{d}\sigma(x)}{\text{d}x}=(1-\sigma(x))\sigma(x)$$
 如果 $x$ 大，那么 bp 时 $\text{d}(Wx)/\text{d}W$ 会变大，learning rate 得变小
@@ -41,7 +68,9 @@ CNN 一般不用 normalization PCA 或者 Whitening, zero-centered 就够了。z
 ## Weight Initialization
 小但不为 0。有很多初始化建议，感觉都是玄学，ReLU 可以用这个 w = np.random.randn(n) * sqrt(2.0/n) (Delving Deep into Rectifiers:
 Surpassing Human-Level Performance on ImageNet Classification)b 推荐设置为零  
-Batch Normalization.
+
+Batch Normalization. 可以直接嵌入当做一层。https://arxiv.org/pdf/1502.03167.pdf 一定要善用类似门电路图的分析，不然碰到这种复杂的式子，你如果求梯度一步到底，很难 vectorize.   
+根据实验（见 assignment2 BatchNormalization.ipynb），batch normalization 收敛更快，对初始化不敏感，不用它就需要努力调初始化。
 
 ## Regularization
  * L2. 大的值造成的影响更大，优化这类 Loss 使得值分布更加 Diffuse
