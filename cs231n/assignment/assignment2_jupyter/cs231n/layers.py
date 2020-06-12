@@ -460,7 +460,8 @@ def dropout_forward(x, dropout_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        mask = (np.random.rand(*x.shape) < p) / p
+        out = x * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -472,7 +473,8 @@ def dropout_forward(x, dropout_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        mask = np.ones(x.shape)
+        out = x
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -503,7 +505,7 @@ def dropout_backward(dout, cache):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dx = dout * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -549,7 +551,25 @@ def conv_forward_naive(x, w, b, conv_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    pad = conv_param["pad"]
+    stride = conv_param["stride"]
+    N, C, H, W = x.shape
+    F, C, HH, WW = w.shape
+    RH = 1 + (H + 2 * pad - HH) // stride
+    RW = 1 + (W + 2 * pad - WW) // stride
+    out = np.zeros((N, F, RH, RW))
+    for i in range(N):
+        xi = np.pad(x[i], ((0, 0), (pad, pad), (pad, pad)), 'constant', constant_values = (0))
+        for r in range(RH):
+            for c in range(RW):
+                for f in range(F):
+                    for ch in range(C):
+                        for rr in range(HH):
+                            for cc in range(WW):
+                                tr = r * stride + rr
+                                tc = c * stride + cc
+                                out[i, f, r, c] += xi[ch, tr, tc] * w[f, ch, rr, cc]
+                    out[i, f, r, c] += b[f]
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################

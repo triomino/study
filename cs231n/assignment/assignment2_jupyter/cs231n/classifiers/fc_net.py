@@ -122,14 +122,13 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-       
         scores -= np.max(scores, axis=1, keepdims=True)
         scores = np.exp(scores)
         prob = scores / np.sum(scores, axis=1, keepdims=True)
         loss = -np.sum(np.log(prob[np.arange(N), y]))/N + 0.5 * reg * (np.sum(W1*W1) + np.sum(W2*W2)) 
 
         grads = {}
-        prob[np.arange(N),y] -= 1
+        prob[np.arange(N), y] -= 1
         grads['W2'] = hidden_layer.T.dot(prob) / N + reg * W2
         grads['b2'] = np.ones(N).dot(prob) / N
         dhidden = prob.dot(W2.T)
@@ -295,6 +294,7 @@ class FullyConnectedNet(object):
         cur_layer = X.reshape(N, -1)
         layer_list = []
         cache = []
+        drop_cache = []
 
         for i in range(num_layers - 1):
             affine_or_batch_layer = cur_layer.dot(self.params['W' + str(i+1)]) + self.params['b' + str(i+1)]
@@ -302,6 +302,9 @@ class FullyConnectedNet(object):
                 affine_or_batch_layer, c_cache = batchnorm_forward(affine_or_batch_layer, self.params["gamma"+str(i+1)], self.params["beta"+str(i+1)], self.bn_params[i])
                 cache.append(c_cache)
             cur_layer = np.maximum(0, affine_or_batch_layer)
+            if self.use_dropout:
+                cur_layer, d_cache = dropout_forward(cur_layer, self.dropout_param)
+                drop_cache.append(d_cache)
             layer_list.append(cur_layer)
 
         scores = cur_layer.dot(self.params['W' + str(num_layers)]) + self.params['b' + str(num_layers)]
@@ -350,6 +353,8 @@ class FullyConnectedNet(object):
             W_name = 'W' + str(index + 1)
             b_name = 'b' + str(index + 1)
             W = self.params[W_name]
+            if self.use_dropout:
+                dnext = dropout_backward(dnext, drop_cache[index])
             dnext[layer <= 0] = 0
             if self.normalization == "batchnorm":
                 dnext, grads['gamma' + str(index + 1)], grads['beta' + str(index + 1)] = batchnorm_backward(dnext, cache[index])
