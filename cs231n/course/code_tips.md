@@ -33,3 +33,16 @@ Softmax 我实现的不干净，有重复运算。可以参考 https://cs231n.gi
 # x[N, d1, d2, ..., dk] -> x[N, D]
 x = x.reshape(x.shape[0], -1)
 ```
+
+## CNN
+做 spatial batchnorm 的时候，(N,C,H,W) 的数据要变成 (NxHxW,C)，用 transpose 做。
+```python
+# no transpose
+x_row = np.zeros((N*H*W, C))
+for i in range(C):
+    x_row[:, i] = x[:, i, :, :].reshape(-1)
+# transpose
+x_row = x.transpose(0, 2, 3, 1).reshape(-1, C)
+```
+另外，gamma beta 的 shape 是 (1,C,1,1) 会方便，能直接乘、加 x(N,C,H,W)。
+
