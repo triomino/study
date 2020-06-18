@@ -46,3 +46,15 @@ x_row = x.transpose(0, 2, 3, 1).reshape(-1, C)
 ```
 另外，gamma beta 的 shape 是 (1,C,1,1) 会方便，能直接乘、加 x(N,C,H,W)。
 
+## RNN
+反向传播做 gradient_check 时，不要动 dh(比如 dh[:, i-1, :] += dprev_h)，因为 dh 要被送进 check 做步长。被坑惨了，其实程序是对的。  
+所以尽量写 functional 的东西，不要省这么点内存。
+
+### 查字典正反向
+W 是字典/embedding，W\[word\] 是 word 对应的向量，X\[NxT\] 是 N 句长度 T 的话。这一层传播写法很简单。
+```python
+# forward
+out = W[x]
+# backward
+np.add.at(dW, x, dout)
+```

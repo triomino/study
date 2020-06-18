@@ -121,3 +121,6 @@ INPUT -> [[CONV -> RELU]*N -> POOL?]*M -> [FC -> RELU]*K -> FC
 input 一般放缩成能被 2 整除多次，因为 pooling 是 2\*2->1\*1。一般只有 pooling 层在 downsampling，卷积层不改变大小（zero-padding 和 stride=1）。如果卷积层的 stride>1，就要格外小心 size 对不齐的问题。
 
 zero-padding 的作用不仅仅是保持 size 不变，还保留了边界的信息。直观点说，一个点会被 F*F 个卷积传到下一层，而没有 zero-padding 时，只有一个卷积把边界点信息传下去，很快边界信息就会被内部信息 "wash away"。
+
+# RNN&LSTM
+RNN 反向传播时带了 $W^T$，T 大起来就是 gradient vanishing/exploding. LSTM 反向传播不累乘 W，不能解决问题，但是信息保留更容易，让传播长度更长了。
