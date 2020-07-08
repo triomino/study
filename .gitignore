@@ -5,6 +5,7 @@
 *.blg
 *.out
 *.synctex.gz
+*.synctex(busy)
 
 ## datasets
 cifar-10-batches-py
