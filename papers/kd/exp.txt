@@ -1,9 +1,0 @@
-现在的 resnetv2.py 比 torchvision.py 的慢的多，而且显存占多一倍。但是代码逻辑都是一样的，需要寻找原因。
-原因是 resnetv2.py ResNet 的 forward 返回了中间层的问题。但是为什么返回中间层会降低效率？中间层并未接入 Loss?
-4 卡 16 worker 256 batch_size 一个 epoch 约 800s，再增加 batch_size 时间节约幅度减小，到 512 才 770s。
-猜测原因
- * 磁盘 io 达到瓶颈，从日志中可以看到，256 的时候总时间:数据读取约 4:1，数据读取时间方差小，范围 0.029~0.044s，
- 512 的时候比值约 3:1，数据读取的时间在 batch 之间浮动较大，0.020s~0.109s 不等。
-确认上面的原因需要进一步学习分布式多进程的原理。
-
-单机多卡最佳实践 https://pytorch.org/tutorials/intermediate/model_parallel_tutorial.html，DDP 教程也能在这里找到
