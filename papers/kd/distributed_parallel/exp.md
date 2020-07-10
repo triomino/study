@@ -31,3 +31,13 @@ teacher 和原来的 student 单个 ResNet18轻松上五十，改过只有 30+
 还会报警 /opt/anaconda3/lib/python3.7/site-packages/torch/nn/_reduction.py:43: UserWarning: size_average and reduce args will be deprecated, please use reduction='sum' instead. 找个时间去掉
 
 有一些 TODO 记得做掉
+
+### 效率记录
+四卡 256 batch_size 16 worker: 0.15s/batch, 其中 0.023~0.035s 读数据。GPU全跑满。770s/epoch  
+八卡 256 batch_size 16 worker: 0.161s/batch, 其中 0.020~0.057s 读数据。始终有 GPU 只有一半，偶尔多卡一起不满。805s/epoch  
+八卡 512 batch_size 32 worker: 0.229s/batch, 其中 0.040~0.060s 读数据。经常有多卡不满(~70%)  570s/epoch  
+六卡 384 batch_size 24 worker: 0.185s/batch, 其中 0.027~0.046s 读数据。经常有一张卡不满。630s/epoch  
+
+八卡同 batch_size 甚至比四卡慢。原因可能是：卡同步耗时，数据读取更慢，观察到 data loading 比四卡耗时更多，明明单卡 batch 更小了。
+
+Vanilla KD 570s 一个 epoch，GPU 没喂饱就算了，我已经很满意了，读取优化预处理优化内存缓冲什么的以后再说，都是蚊子腿。终于可以去玩 model parallel 了。希望 model parallel 能带来更惊人的加速。

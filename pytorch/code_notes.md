@@ -1,0 +1,3 @@
+[ImageFolder](https://pytorch.org/docs/stable/_modules/torchvision/datasets/folder.html#ImageFolder), [DatasetFolder](https://pytorch.org/docs/stable/_modules/torchvision/datasets/folder.html#DatasetFolder) torchvision 里的实现，class_to_idx 是从目录得到的，一个类一个目录。如果 train 和 test 的目录不一致，比如有时候部分类在 test 或者 train 中残缺，label 就会出问题。应该补上空文件夹以保证字典一致。
+
+有一回 DataLoader 忘了传 num_workers 了，发现数据读取巨慢。因为默认是 0，在主进程里读取，开 1 都比它好得多。
