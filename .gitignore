@@ -6,12 +6,18 @@
 *.out
 *.synctex.gz
 *.synctex(busy)
+*.fdb_latexmk
+*.fls
+*.nav
+*.snm
+*.toc
 
 ## datasets
 cifar-10-batches-py
 
 ## archive
 *.zip
+*.tgz
 
 ## python
 __pycache__/
