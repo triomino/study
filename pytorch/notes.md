@@ -1,10 +1,13 @@
 ## 分布式多进程
 [单机多卡最佳实践](https://pytorch.org/tutorials/intermediate/model_parallel_tutorial.html)。DDP 教程在[这里](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)。用分布式多进程做 ImageNet+ResNet 训练有[官方样例](https://github.com/pytorch/examples/blob/master/imagenet/main.py)，但官方样例的 test 没做分布式 [issue#461](https://github.com/pytorch/examples/issues/461)，我把它改成了分布式([代码](https://github.com/triomino/examples/blob/master/imagenet/main.py))。但这个终究还是 Model Sharing，不够过瘾。
 
-做一些笔记：
+### 理想和现实的距离
+虽然下面分析看上去 model parallel 很厉害，但是理想和现实有一定距离。
+实际情况难以保证 model 分割平均，两个卡总是不平均。一个卡能到 80% 负荷，另一个只有 60%, 不如 model share 所有卡都能跑满(200%)，不过同 batch_size 080+60 接近 200 的训练速度很厉害。另外 split_size 得是 16/32 这种，比如 120:20 会慢于 96:16，可能是底层的优化问题。而且不管怎么调，负荷高的卡总是难以达到 100%，如果解决这个问题，应该速度能更快。
+
 ### model parallel 比 model share 更快。
-model parallel 指模型分割。
-model share 只是数据分割，所有 GPU 共享同样的 model 参数。也就是 DataParallel 和 DistributedDataParallel 做的事情。
+model parallel=data streaming 指模型分割。
+model share=data parallel 只是数据分割，所有 GPU 共享同样的 model 参数。也就是 DataParallel 和 DistributedDataParallel 做的事情。
 尽量用 DistributedDataParallel，DDP 多进程，DP 多线程。DistributedDataParallel 还有个好处是可以
 和 model parallel 融合。
 model parallel 具有更高的编程复杂度，但是感觉会很爽，理想目标是有几个 GPU 就加速几倍。model parallel 让交流的耗损尽量小，尽可能的在靠近这个目标。

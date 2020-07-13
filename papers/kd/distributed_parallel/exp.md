@@ -12,6 +12,8 @@
 
 确认上面的原因需要进一步学习分布式多进程的原理。
 
+使用 DALI，单个 epoch 中 batch_time 和 data_time 会同步增加，最后会变得很慢，GPU 各种跑不满，找个时间排除这个问题。[官方的例子](https://github.com/NVIDIA/DALI/blob/master/docs/examples/use_cases/pytorch/resnet50/main.py)也有这个问题，而且跑的比我还慢。目前最佳实践是分两组四卡，GPU 一直是满的，偶尔还是有跑不满的时候，不过我认为没办法再加速了。
+
 ## student 调试过程
 当前问题是，train_student r=1, ab=0，按理来说和 train_teacher 差不多。但是准确率垃圾很多，load data 更慢，但是整体居然更快。说明 train_student 可能改的不对。  
 10 epoch imagenette ResNet18  
@@ -41,3 +43,5 @@ teacher 和原来的 student 单个 ResNet18轻松上五十，改过只有 30+
 八卡同 batch_size 甚至比四卡慢。原因可能是：卡同步耗时，数据读取更慢，观察到 data loading 比四卡耗时更多，明明单卡 batch 更小了。
 
 Vanilla KD 570s 一个 epoch，GPU 没喂饱就算了，我已经很满意了，读取优化预处理优化内存缓冲什么的以后再说，都是蚊子腿。终于可以去玩 model parallel 了。希望 model parallel 能带来更惊人的加速。
+
+Model Parallel 失败了，没有想的那么好。用上了 [DALI](https://github.com/NVIDIA/DALI/)，又快了几十秒。
