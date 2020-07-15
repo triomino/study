@@ -32,7 +32,15 @@ teacher 和原来的 student 单个 ResNet18轻松上五十，改过只有 30+
 
 还会报警 /opt/anaconda3/lib/python3.7/site-packages/torch/nn/_reduction.py:43: UserWarning: size_average and reduce args will be deprecated, please use reduction='sum' instead. 找个时间去掉
 
+关于最后一个 batch，如果舍掉会有问题，没有 validate 过程。测试是否是 dali 的问题。
+
 有一些 TODO 记得做掉
+
+突然遇到了 GPU0 显存巨大，其他卡几乎没有显存的问题。其实学习多进程的时候已经特别注意到了这个东西，甚至写了[笔记](https://github.com/triomino/study/blob/11811da6c44e2c61372d8fe607bdb5059d80da1d/pytorch/notes.md#ddp-%E5%92%8C-saveload)。原来我以前 teacher 都是全部 load 到 GPU0 上的？居然没有显存爆炸，真是奇迹。
+
+tensorboard logger 会使得 GPU0 比别的都慢一拍，别人都要等一等它。目前尚未发现会有什么不良影响。
+
+用 dali 第一个 epoch test 全是 0，查了大半天原来是 teacher validate 完没有 reset dataloader. DALI 为什么要 reset? 真是一言难尽。
 
 ### 效率记录
 四卡 256 batch_size 16 worker: 0.15s/batch, 其中 0.023~0.035s 读数据。GPU全跑满。770s/epoch  
@@ -45,3 +53,15 @@ teacher 和原来的 student 单个 ResNet18轻松上五十，改过只有 30+
 Vanilla KD 570s 一个 epoch，GPU 没喂饱就算了，我已经很满意了，读取优化预处理优化内存缓冲什么的以后再说，都是蚊子腿。终于可以去玩 model parallel 了。希望 model parallel 能带来更惊人的加速。
 
 Model Parallel 失败了，没有想的那么好。用上了 [DALI](https://github.com/NVIDIA/DALI/)，又快了几十秒。
+
+用 DALI 失败了，不知道什么原因，从五六十个 epoch 起就减速了。减速之后并没有比之前快。十分难受，不管效率了，先把准确度做出来。
+
+用 DALI 的时候又见到了 apex.amp 研究一下。
+
+#### 是否用 apex 的 DDP，是否用 DALI 的对比
+均为 kd, 32x8 batsh_size ResNet34->ResNet18 32 workers，为了让各自方法不受之前缓存的影响，都训前两个 epoch，主要参考第二个。准确率有点不好对比，因为我没有 shuffle 的种子设成一样（懒）。格式 epoch_time(batch_time 变化)
+pytorch.DDP  597s(11.37->0.119), 600s(11.41->0.120) acc 39~
+pytorch.DDP+DALI.GPU epoch 531s(0.061->0.106), 487s(0.072->0.097) acc 39~
+apex.DDP 
+apex.DDP+DALI.GPU 516s(0.074->0.103), 506s(0.033->0.101) acc 38.97
+并未感受到 apex.DDP 的优势。有空把 apex 的 amp 那一套都搬过来测一测时间，看整一套是不是更快。
