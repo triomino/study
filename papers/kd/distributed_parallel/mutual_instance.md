@@ -19,6 +19,15 @@ x_i-x_j\|_p$，forward 是照着公式这么写的。
 
 为了适应原来的框架，每个利用样本之间关系的方法需要另外写一个 Distributed 的类，它的 forward 接受 sub-batch 和整个 batch
 
+## Demo
+[Demo 代码](instance_mutual.py)   
+这个程序会跑三段代码，一个是单卡，另外两个是上面两种实现。给三个实现输入同一个 batch，对比算出来的 loss 和梯度。结果如下：  
+
+![Demo](result.png)
+
+sub batch x sub batch 是有问题的实现，sub batch x batch 是正确实现。loss diff 和 grad diff 分别是与单卡比 loss 和梯度的误差。
+
+
 ## 可能存在的问题
 1. 训练速度降低
 2. 显存过大
