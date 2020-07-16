@@ -31,3 +31,11 @@ sub batch x sub batch 是有问题的实现，sub batch x batch 是正确实现�
 ## 可能存在的问题
 1. 训练速度降低
 2. 显存过大
+
+## 它可能不是一个问题
+和学长讨论之后，这个行为等同于单卡同时对一堆 batch 做 backward，既不是单卡用小 batch 依次跑，也不是单卡一下子做完一个大 batch。不过并不是没有道理的，先做实验看 acc 是不是真的受到了影响。希望找到一些论文来支撑这种做法的正确性。
+
+## 它可能被研究过
+忽然在 Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour 中看到 batch normalization. 这个层要用 batch 的统计数据，那分布式的时候咋办？所以肯定被研究过了。这篇的 2.3 节就是干脆用 sub-batch 的统计数据，然后调一调 learning rate 就行了。
+
+pytorch 官方肯定会对 BN 做考虑，去看一看。网上又查到了这篇。 Batch Renormalization: Towards Reducing Minibatch Dependence in Batch-Normalized Models. Tensorflow 里有个相关 [issue](https://github.com/tensorflow/tensorflow/issues/7439), pytorch 里也有 [issue](https://github.com/torch/nn/issues/1071)。
