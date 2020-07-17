@@ -7,3 +7,12 @@
 有人用 DALI 加速跟我有一样的[疑惑](https://github.com/NVIDIA/DALI/issues/1774), FileReader 传进去的 seed 不是用来 shuffle 的，shuffle 的是一个全局 seed，在所有进程所有机器上都一样。每次 epoch 结束后会改这个全局 seed. 那么 FileReader 传进去 seed 有啥用呢？
 
 用 nccl 做不同 GPU 的同步，用 gloo 做 CPU 不同进程的同步
+
+我没有设置 drop_last 发现还是每个 batch 都满了，而且是增加了，不是削掉了。  原因是 [DistributedSampler](https://pytorch.org/docs/stable/_modules/torch/utils/data/distributed.html#DistributedSampler) 内置的行为，摘取下面这段代码：
+```python
+# add extra samples to make it evenly divisible
+indices += indices[:(self.total_size - len(indices))]
+assert len(indices) == self.total_size
+```
+也就是 validation 的时候不可避免因为这个出现误差。我算是知道官方迟迟不用 DistributedSampler 做分布式的原因了。  
+这一点 DALI 的 [DALIClassificationIterator](https://docs.nvidia.com/deeplearning/dali/user-guide/docs/plugins/paddle_plugin_api.html?highlight=daliclassificationiterator#nvidia.dali.plugin.paddle.DALIClassificationIterator) 就做的很透明了，用 fill_last_batch 和 last_batch_padded 两个参数控制，可以看看里面的 example，讲的很清楚。当然要记住 validate 的时候绝对要把两个都关了，这可能会造成 batch 残缺以及不同 GPU 上 batch_size 不一致，要在 all_reduce 的时候传递 size 保证合并结果的正确。

@@ -8,6 +8,8 @@
 6. 代码 Fork 了 [Contrastive Representation Distillation(ICLR 2020)](https://github.com/HobbitLong/RepDistiller) 的代码，有一个公开的 [Fork](https://github.com/triomino/RepDistiller) 和另一个私人的 Fork. 公开的 Fork 只是加上了 IRG Loss，私人的加上了分布式和 [DALI](https://github.com/NVIDIA/DALI) DataLoader 加速，等做完一大堆实验开源。  
 7. 实验记录 在上面这个私人 repo 的[凌乱的探索记录](../kd/distributed_parallel/exp.md)
 
+TODO: 在上面的东西里整理遇到的坑，比如 last batch, mutual instance loss，和以后会研究的 random seed 问题。
+
 ## Papers
 ### Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour
  * Linear Scaling Rule: When the minibatch size is multiplied by k, multiply the learning rate by k. 一句话解释：loss 和梯度都对 batch size 做平均，这一条十分自然。例外：初始时网络剧烈变化，所以需要 warmup phase，以及 batch size 不能无限制扩大(~8k)。
