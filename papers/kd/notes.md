@@ -60,3 +60,11 @@ angle 比 distance order 高指啥？order 是指参与计算的样例个数吗�
 ## (19ICCV-CCKD)Correlation Congruence for Knowledge Distillation
 这篇提到以前的 minibatch 采样策略拿出来一般都不同类，所以会有 intra-class bias. 为啥上两篇没提到这个？说明其实这个问题不严重？  
 高斯 RBF 的泰勒展开，它怎么把 $x,y$ 的模长给去掉了？
+
+## (20CVPR-HKD)Heterogeneous Knowledge Distillation using Information Flow Modeling
+初步原理：定义 $\omega=[I(\mathcal X^{(1)}, \mathcal{Z}),...,I(\mathcal X^{(N)}, \mathcal{Z})]$ 是网络的信息流，其中 $\mathcal X^{(l)}$ 是第 $l$ 层的 feature/feature map，$\mathcal{Z}$ 是标签，$I$ 是互信息。对 student 的每一层互信息，找到对应的最接近的 teacher 层，这个差的平方和就是最后 Loss。  
+进化：可以 unsupervised，用 QMI, 算 batch 内 $p_{i|j}$ 的互信息。这个东西主要基于 ECCV2018 的 Learning deep representations with probabilistic knowledge transfer 这篇文章，真相搞懂就去看看（其实不想搞懂）。  
+teacher 和 student 大不相同的时候，可能会一个 student 层对应多个 teacher 层。就需要一个 auxiliary teacher 作为过渡。这个 auxiliary 简单点就是 student 变宽一倍。
+
+### Problem
+疑问：那 teacher 和 auxiliary teacher 不还是乱连？那 student 更糟糕？是不是因为 auxiliary teacher 比较胖所以不会太垃圾？

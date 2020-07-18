@@ -14,5 +14,7 @@
 indices += indices[:(self.total_size - len(indices))]
 assert len(indices) == self.total_size
 ```
-也就是 validation 的时候不可避免因为这个出现误差。我算是知道官方迟迟不用 DistributedSampler 做分布式的原因了。  
+也就是 validation 的时候不可避免因为这个出现误差。我算是知道官方迟迟不用 DistributedSampler 做分布式的原因了。我也在官方 repo 里找到了这个 [issue](https://github.com/pytorch/pytorch/issues/25162)  
 这一点 DALI 的 [DALIClassificationIterator](https://docs.nvidia.com/deeplearning/dali/user-guide/docs/plugins/paddle_plugin_api.html?highlight=daliclassificationiterator#nvidia.dali.plugin.paddle.DALIClassificationIterator) 就做的很透明了，用 fill_last_batch 和 last_batch_padded 两个参数控制，可以看看里面的 example，讲的很清楚。当然要记住 validate 的时候绝对要把两个都关了，这可能会造成 batch 残缺以及不同 GPU 上 batch_size 不一致，要在 all_reduce 的时候传递 size 保证合并结果的正确。
+
+今天又碰到一个坑。在迭代的时候，如果 w=w+dw, 那么下一轮迭代 w.grad 会变成 None，即使你 w.requires_grad_()，也没用。这是因为 w=w+dw 做完 w 被视作中间变量(intermediate variable)，它再也不是 leaf 了。而 pytorch 为了省内存直接不保存中间变量的梯度。可以 w.detach_() 来让他脱离原图重新变成 leaf，这就是 [optimizer.zero_grad()](https://pytorch.org/docs/stable/_modules/torch/optim/optimizer.html#Optimizer.zero_grad) 的做法。也有人直接 w.data += ..., 可能挺省空间的. 如果不是迭代可以 retain_grad().

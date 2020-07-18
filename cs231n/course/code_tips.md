@@ -58,3 +58,7 @@ out = W[x]
 # backward
 np.add.at(dW, x, dout)
 ```
+
+## Network Visiualization
+### Saliency Maps
+算的时候一个 batch 的 class score 全部加起来然后 backward。和一个个算是一样的。

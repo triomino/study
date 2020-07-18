@@ -124,3 +124,13 @@ zero-padding 的作用不仅仅是保持 size 不变，还保留了边界的信�
 
 # RNN&LSTM
 RNN 反向传播时带了 $W^T$，T 大起来就是 gradient vanishing/exploding. LSTM 反向传播不累乘 W，不能解决问题，但是信息保留更容易，让传播长度更长了。
+
+# Visualization
+ * Layer Activations. 随层数分散到集中。
+ * Conv/FC Filters. 第一层初级特征
+ * Retrieving images that maximally activate a neuron. 排出来的图应该都有明显相似点。
+ * Embedding the codes with t-SNE. 降维到二维平面，图片特征近的位置近
+ * Occluding parts of the image. 遮挡的影响大小合到一个热量图上。
+ * Data Gradient. 在训完的网络上，固定 weight，求零图片对最高分数的梯度，应该能反应原图上重要的地方. Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps。
+
+最后一个有点意思，有各种稀奇古怪的延申。从原图开始 Gradient Ascent，你甚至能反向生成和原来有点像的图片，人眼分不出区别，但是 pretrained network 把它分错的图片。也可以从随机图片生成类内图片。从零图开始则是重要性分布。
