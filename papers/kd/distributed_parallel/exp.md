@@ -58,10 +58,33 @@ Model Parallel 失败了，没有想的那么好。用上了 [DALI](https://gith
 
 用 DALI 的时候又见到了 apex.amp 研究一下。
 
-#### 是否用 apex 的 DDP，是否用 DALI 的对比
+### 是否用 apex 的 DDP，是否用 DALI 的对比
 均为 kd, 32x8 batsh_size ResNet34->ResNet18 32 workers，为了让各自方法不受之前缓存的影响，都训前两个 epoch，主要参考第二个。准确率有点不好对比，因为我没有 shuffle 的种子设成一样（懒）。格式 epoch_time(batch_time 变化)
 pytorch.DDP  597s(11.37->0.119), 600s(11.41->0.120) acc 39~
 pytorch.DDP+DALI.GPU epoch 531s(0.061->0.106), 487s(0.072->0.097) acc 39~
 apex.DDP 
 apex.DDP+DALI.GPU 516s(0.074->0.103), 506s(0.033->0.101) acc 38.97
 并未感受到 apex.DDP 的优势。有空把 apex 的 amp 那一套都搬过来测一测时间，看整一套是不是更快。
+
+### DALI 的精确度问题
+从 torchvision 下载的 pretrained 模型直接 evaluate 发现和官方的 accuracy 不一样。这个 [issue](https://github.com/NVIDIA/DALI/issues/400) 里指出 DALI 预处理用 OpenCV/npp，和 pytorch 的 Pillow 不一样。resnet34 on imagenet 的准确度从 73.314% 变成 73.262%, 等于有 26 张图片因此被误分类。  
+可以用 DALI 官方的程序运行 `python -m torch.distributed.launch --nproc_per_node=1 main.py --b 256 --pretrained --evaluate -a resnet34 PATH_TO_DATASET` 来证明并不是其他因素影响的。
+用了 DALI 之后准确度:
+resnet34: 73.262%
+wrn_50_2: 78.472%
+vgg13(without BN): 69.952%
+vgg13(BN): 71.532%
+
+### pytorch 的 deterministic 测试
+主要基于 https://pytorch.org/docs/stable/notes/randomness.html  
+又使用了 DALI，不过 DALI 分布式 shuffle 用了 hardcoded 的 seed, 所以不需要额外设 seed, 只要传进 dataloader/filereader 的 seed 是一样的就好了。  
+做普通的 kd, resnet34->resnet18, bs=64x8  
+没有 deterministic, 第一个 epoch: 608.12s, acc 26.462/51.816  
+deterministic，前三个 epoch:   
+620.16s, acc 26.006/51.386,   
+502.22s, acc 38.498/65.230,  
+497.58s, acc 44.028/70.656   
+重复实验：  
+498.05s, acc 26.006/51.386,  
+489.69s, acc 38.498/65.230,  
+495.23s, acc 44.028/70.656  
