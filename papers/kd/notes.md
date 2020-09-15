@@ -68,3 +68,20 @@ teacher 和 student 大不相同的时候，可能会一个 student 层对应多
 
 ### Problem
 疑问：那 teacher 和 auxiliary teacher 不还是乱连？那 student 更糟糕？是不是因为 auxiliary teacher 比较胖所以不会太垃圾？
+
+## (18NIPS-ONE)Knowledge Distillation by On-the-Fly Native Ensemble
+后半截模型分叉(branch)，不同 branches ensumble 合成 teacher，teacher 按照原始 kd 的方法指导 student. branch 的 Diversity 由随机初始化保证。
+### 疑惑
+用于 ensumble 的 Gate 是怎么回事？ It is constructed by one FC layer followed by
+batch normalisation, ReLU activation, and softmax, and uses the same input features as the branches
+
+## (18NIPS-Collaborative)Collaborative Learning for Deep Neural Networks
+思路和 ONE 差不多，不过后半截模型可以多次分叉，图示：
+![hierarchical](hierarchical.png)  
+分叉到最后的树叶（一般是分类器）被称为 head.  
+这篇和 ONE 另一个不同点是 ensumble 方式，这篇直接用其他 heads 的平均来指导当前 head. 这比 ONE 简单的多。  
+### Gradient Variance Control
+这篇文章提到了很有趣的一个点。设 heads 数量为 H, H 大起来 gradient 的 variance 会变大（很容易理解，上图红色层的 gradient variance 相当于原来的四倍）。而直接除以 H 会造成另一个问题，就是学习缓慢（每个 model 学习速度变成 1/H）。  
+文章解决方案是分叉口 forward 的时候 $I(x)=x$，backward 的时候 $\nabla_\bm xI=\frac{1}{H}$.
+### 疑惑
+为什么不直接学习率乘 H 来加速？这样有什么弊端？  
