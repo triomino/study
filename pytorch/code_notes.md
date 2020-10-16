@@ -26,5 +26,7 @@ assert len(indices) == self.total_size
 ## Pytorch Model
 今天又碰到一个坑。在迭代的时候，如果 w=w+dw, 那么下一轮迭代 w.grad 会变成 None，即使你 w.requires_grad_()，也没用。这是因为 w=w+dw 做完 w 被视作中间变量(intermediate variable)，它再也不是 leaf 了。而 pytorch 为了省内存直接不保存中间变量的梯度。可以 w.detach_() 来让他脱离原图重新变成 leaf，这就是 [optimizer.zero_grad()](https://pytorch.org/docs/stable/_modules/torch/optim/optimizer.html#Optimizer.zero_grad) 的做法。也有人直接 w.data += ..., 可能挺省空间的. 如果不是迭代可以 retain_grad().
 
+另外还可以 tensor.register_hook(save_grad) 在得到 grad 的时候立刻存下来。
+
 ## Python
 今天碰到的一个坑。[stackoverflow](https://stackoverflow.com/questions/29548587/import-fails-when-running-python-as-script-but-not-in-ipython) 有解答。直接 python 是能 import 当前目录下的东西，如果 python xxx.py 也能，这两个系统环境变量其实一样。但是 python aaa/xxx.py 就不对了，第一个环境变量会变成 aaa. 我真的搞不懂有些项目怎么弄的 path，直接 clone 下来都不能跑的。

@@ -85,3 +85,14 @@ batch normalisation, ReLU activation, and softmax, and uses the same input featu
 文章解决方案是分叉口 forward 的时候 $I(x)=x$，backward 的时候 $\nabla_\bm xI=\frac{1}{H}$.
 ### 疑惑
 为什么不直接学习率乘 H 来加速？这样有什么弊端？  
+
+## 同一主题
+### (18CVPR-DML, 18ICLR-onlineKD, 18NIPS-Collaborative, 18NIPS-ONE)
+换汤不换药，模型分 tree-based 和 network-based，然后 Loss 改一改，分叉地方有没有梯度的 scale(ONE)，这样。google 这篇 (OnlineKD) 重点则是在 large scale 上，方法其实都差不多。这些算是第一批多个 student 互相学的文章？
+
+### (20CVPR-KDCL) Online Knowledge Distillation via Collaborative Learning
+改进了 ensumble loss, 加上了数据增强
+### (20ECCV-DCM) Knowledge Transfer via Dense Cross-Layer Mutual-Distillation
+内部 layer 都拿出来用了，后面接一个分类器对齐，分类器不是简单的 fc，是这个 layer 后半部分模型。
+### (20AAAI-OKDDip)Online Knowledge Distillation with Diverse Peers
+attention 组出各自有一个 teacher. 有一个 group leader 不在 attention 里，第二阶段训的。

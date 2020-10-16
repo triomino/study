@@ -7,3 +7,6 @@ ffmpeg -vsync 0 -hwaccel cuvid -c:v h264_cuvid -i input.mp4 -c:a copy -c:v h264_
 -r
 
 一个半小时 5Mbps 大约 4G 不到一点
+
+## 合并
+mark https://www.jianshu.com/p/cf1e61eb6fc8

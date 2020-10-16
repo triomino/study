@@ -134,3 +134,8 @@ RNN 反向传播时带了 $W^T$，T 大起来就是 gradient vanishing/exploding
  * Data Gradient. 在训完的网络上，固定 weight，求零图片对最高分数的梯度，应该能反应原图上重要的地方. Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps。
 
 最后一个有点意思，有各种稀奇古怪的延申。从原图开始 Gradient Ascent，你甚至能反向生成和原来有点像的图片，人眼分不出区别，但是 pretrained network 把它分错的图片。也可以从随机图片生成类内图片。从零图开始则是重要性分布。
+
+# 生成模型
+PixelRNN/CNN 最大化 $p_\theta(x)=\prod{p_\theta(x_i|x_1,...,x_{i-1})}$，$x_i$ 是一个个像素点。  
+VAE
+GAN
