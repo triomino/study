@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{enumitem}
 
 % Include other packages here, before hyperref.
 
@@ -21,11 +22,11 @@
 
 % Pages are numbered in submission mode, and unnumbered in camera-ready
 %\ifcvprfinal\pagestyle{empty}\fi
-\setcounter{page}{4321}
+\setcounter{page}{1}
 \begin{document}
 
 %%%%%%%%% TITLE
-\title{A Survey: Ensumble Methods in Knowledge Distillation}
+\title{A Survey on Online Knowledge Distillation Methods}
 
 \author{Yuan Zhang\\
 College of Computer Science, Zhejiang University, China\\
@@ -52,12 +53,32 @@ College of Computer Science, Zhejiang University, China\\
 
 %%%%%%%%% BODY TEXT
 \section{Introduction}
+During the last few years, deep learning has gained impressive success
+in artificial intelligence. To gain better performance, the deep learning networks
+is growing larger and larger. These models have achieved overwhelming
+success, however the large size causes heavy computational load during inference. To
+deploy such models in real-time applications or on devices with limited resources,
+their size should be reduced.
 
-Please follow the steps outlined below when submitting your manuscript to
-the IEEE Computer Society Press.  This style guide now has several
-important modifications (for example, you are no longer warned against the
-use of sticky tape to attach your artwork to the paper), so all authors
-should read this new version.
+Knowledge distillation~\cite{hinton2015distilling} is one of the methods to reduce
+network size with acceptable accuracy drop. It is a process of extracting knowledge
+from a complicated teacher network to a simple student network. According to whether teacher is updated simultaneously with student, knowledge distillation methods
+are categorized into online methods and offline methods. In offline methods the teacher networks
+are pre-trained and fixed, thus before distillation there is a stage to train the teacher.
+Offline methods are simple and fast if the teacher network is provided. However, when the teacher network is not presented,
+offline methods begin to expose their limitations:
+\begin{enumerate}
+   \item Training and tuning a complex teacher network costs a lot of time and effort. And this stage may be performed several times for different tasks or trying different teacher networks.
+   \item There is a gap between student and teacher, more specifically, a better teacher does not grant a better student~\cite{mirzadeh2020improved}. This makes researchers wonder whether a group of weak teachers will give better performance.
+   \item It is not easy to decide the teacher framework. Usually the teacher network is just a wider version of student network. However, its size cannot be arbitrarily large. As mentioned in second point,
+   a wider teacher with better performance may result in a worse student.
+ \end{enumerate}
+
+Online methods are developed to address these problems. Online distillation is single-stage training process. Normally it starts from a random ensumble teacher network and
+updates this network during the distillation process. Online methods outperforms 
+
+
+
 
 %-------------------------------------------------------------------------
 \subsection{Language}
