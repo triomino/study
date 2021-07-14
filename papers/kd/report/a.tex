@@ -26,7 +26,7 @@
 \begin{document}
 
 %%%%%%%%% TITLE
-\title{A Survey on Online Knowledge Distillation Methods}
+\title{Online Knowledge Distillation Methods: A Survey}
 
 \author{Yuan Zhang\\
 College of Computer Science, Zhejiang University, China\\
@@ -63,7 +63,7 @@ their size should be reduced.
 Knowledge distillation~\cite{hinton2015distilling} is one of the methods to reduce
 network size with acceptable accuracy drop. It is a process of extracting knowledge
 from a complicated teacher network to a simple student network. According to whether teacher is updated simultaneously with student, knowledge distillation methods
-are categorized into online methods and offline methods. In offline methods the teacher networks
+are categorized into online methods and offline methods. In offline methods~\cite{liu2019knowledge}~\cite{mirzadeh2020improved}~\cite{passalis2020heterogeneous}~\cite{romero2014fitnets} the teacher networks
 are pre-trained and fixed, thus before distillation there is a stage to train the teacher.
 Offline methods are simple and fast if the teacher network is provided. However, when the teacher network is not presented,
 offline methods begin to expose their limitations:
@@ -74,12 +74,21 @@ offline methods begin to expose their limitations:
    a wider teacher with better performance may result in a worse student.
  \end{enumerate}
 
-Online methods are developed to address these problems. Online distillation is single-stage training process. Normally it starts from a random ensumble teacher network and
-updates this network during the distillation process. Online methods outperforms 
+The single-stage online methods are developed to address these problems.
+The earliest online methods~\cite{anil2018large}~\cite{zhang2018deep} start from a group of random networks and 
+learn from each other during the distillation process. Anil \etal~\cite{anil2018large} employ their method to train
+large-scale distributed neural networks and prove online knowledge distillation is a universal and powerful method
+to train a simple neural network. Later such methods are developed into ensumble methods~\cite{chen2020online}~\cite{guo2020online}~\cite{lan2018knowledge}, where the student networks learn
+from an ensumble of themselves. In~\cite{lan2018knowledge} and~\cite{song2018collaborative} a branch model is used to reduce the memory cost of too many networks.
 
+Some methods are not in the framework of ensumble network.~\cite{yao2020knowledge} appends classifiers to hidden layers so that these layers participate the online distillation process explicitly.
+~\cite{chung2020feature} introduces adversarial learning into online distillation.
 
-
-
+In this paper some of ensumble online methods are discussed.
+Section ~\ref{vanilla_kd} will introduce the original form of knowledge distillation, which is the basis of online knowledge distillation.
+Section ~\ref{ensubmle_model} will show most online methods follow
+an ensumble framework.
+Section ~\ref{review} will review these methods and discuss the challenges and opportunities in online knowledge distillation.
 %-------------------------------------------------------------------------
 \subsection{Language}
 
@@ -294,15 +303,46 @@ For this citation style, keep multiple citations in numerical (not
 chronological) order, so prefer \cite{Alpher03,Alpher02,Authors14} to
 \cite{Alpher02,Alpher03,Authors14}.
 
+%------------------------------------------------------------------------
+\section{Vanilla Knowledge Distillation}\label{vanilla_kd}
+Figure~\ref{fig:vanilla_kd} shows the structure of vanilla knowledge distillation. Denote T as the pretrained teacher network and
+denote S as the student network to be trained. Same copies of data are sent to T and S respectively.
+The knowledge extracted from output of T is used to direct the training of S.
+
+Formally, suppose there is a classification task with a labeled dataset $\mathcal D=\{(x_i, y_i)\}_i^n$ and $f_S(x;\theta):\mathcal X\mapsto\mathbb{R}^m$ is the logits function of the student network S. The parameters of T is fixed
+during distillation so that function $f_T(x)$ without parameters is used to denote its logits function.
+
+Equation ~\eqref{eqn:kd_loss} gives the distillation loss, where $\textrm{H}(p, q)$ is cross entroy loss function and $t$ is temperature of softmax function. Equation ~\eqref{eqn:gt_loss} gives the
+ground truth loss of classification. The final training loss is a weighted sum of these two terms.
+
+\begin{equation}
+\label{eqn:kd_loss}
+L=\sum\limits_{(x_i, y_i)\in \mathcal D}{\textrm{H}(\textrm{softmax}(\frac{f_T(x_i)}{t}), \textrm{softmax}(\frac{f_S(x_i; \theta)}{t}))}
+\end{equation}
+
+\begin{equation}
+\label{eqn:gt_loss}
+L_{GT}=\sum\limits_{(x_i, y_i)\in \mathcal D}{\textrm{H}(\textrm{one-hot}(y_i),\textrm{softmax}(f_S(x_i; \theta)))}
+\end{equation}
 
 \begin{figure*}
 \begin{center}
-\fbox{\rule{0pt}{2in} \rule{.9\linewidth}{0pt}}
+\includegraphics[width=0.9\linewidth]{vanilla_kd.png}
 \end{center}
-   \caption{Example of a short caption, which should be centered.}
-\label{fig:short}
+   \caption{Vanilla Knowledge Distillation}
+\label{fig:vanilla_kd}
 \end{figure*}
+%------------------------------------------------------------------------
+\section{Ensumble Model}\label{ensubmle_model}
 
+%------------------------------------------------------------------------
+\section{Challenges and Opportunities}\label{review}
+Note that inner layers can be a part the knowledge.~\cite{romero2014fitnets}~\cite{yao2020knowledge}~\cite{DBLP:journals/corr/ZagoruykoK16a}
+conetent
+explore the capacity of a network structure.
+%------------------------------------------------------------------------
+\section{Conclusion}
+conetent
 %------------------------------------------------------------------------
 \section{Formatting your paper}
 
