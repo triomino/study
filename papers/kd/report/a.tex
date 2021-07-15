@@ -8,11 +8,6 @@
 \usepackage{amssymb}
 \usepackage{enumitem}
 
-% Include other packages here, before hyperref.
-
-% If you comment hyperref and then uncomment it, you should delete
-% egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
-% run, let it finish, and you should be clear).
 \usepackage[breaklinks=true,bookmarks=false]{hyperref}
 
 \cvprfinalcopy % *** Uncomment this line for the final submission
@@ -48,7 +43,24 @@ College of Computer Science, Zhejiang University, China\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-   Consistency 
+Knowledge distillation is a simple but effective method to
+train neural networks for meeting the low-memory and
+low-latancy requirements. Offline
+distillation methods utilize knowledge from
+a powerful pretrained teacher, which requires
+a complex two-phase training procedure.
+Online methods develop an ensumble teacher to
+address this problem, where networks learn from
+ensumbles of themselves during the training process.
+These methods are one-phase and end-to-end training scheme.
+But those with high performance among
+them have high memory consumption and are difficult to do
+parallel training, which leaves room for improvement.
+So far online methods are beyond the scope of 
+distillation. They train a better network
+without external knowledge from a teacher,
+and give hint on exploring the maximum capacity
+of a network.
 \end{abstract}
 
 %%%%%%%%% BODY TEXT
@@ -63,8 +75,8 @@ their size should be reduced.
 Knowledge distillation~\cite{hinton2015distilling} is one of the methods to reduce
 network size with acceptable accuracy drop. It is a process of extracting knowledge
 from a complicated teacher network to a simple student network. According to whether teacher is updated simultaneously with student, knowledge distillation methods
-are categorized into online methods and offline methods. In offline methods~\cite{liu2019knowledge}~\cite{mirzadeh2020improved}~\cite{passalis2020heterogeneous}~\cite{romero2014fitnets} the teacher networks
-are pre-trained and fixed, thus before distillation there is a stage to train the teacher.
+are categorized into online methods and offline methods. In offline methods the teacher networks
+are pre-trained and fixed, thus before distillation there is a stage to train the teacher~\cite{liu2019knowledge}~\cite{mirzadeh2020improved}~\cite{passalis2020heterogeneous}~\cite{romero2014fitnets}.
 Offline methods are simple and fast if the teacher network is provided. However, when the teacher network is not presented,
 offline methods begin to expose their limitations:
 \begin{enumerate}
@@ -78,11 +90,12 @@ The single-stage online methods are developed to address these problems.
 The earliest online methods~\cite{anil2018large}~\cite{zhang2018deep} start from a group of random networks and 
 learn from each other during the distillation process. Anil \etal~\cite{anil2018large} employ their method to train
 large-scale distributed neural networks and prove online knowledge distillation is a universal and powerful method
-to train a simple neural network. Later such methods are developed into ensumble methods~\cite{chen2020online}~\cite{guo2020online}~\cite{lan2018knowledge}, where the student networks learn
-from an ensumble of themselves. In~\cite{lan2018knowledge} and~\cite{song2018collaborative} a branch model is used to reduce the memory cost of too many networks.
+to train a simple neural network. Later such methods are developed into ensumble methods, where the student networks learn
+from an ensumble of themselves~\cite{chen2020online}~\cite{guo2020online}~\cite{lan2018knowledge}. In method \textbf{ONE}~\cite{lan2018knowledge} and \textbf{CL}~\cite{song2018collaborative} a branch model is used to reduce the memory cost of too many networks.
 
-Some methods are not in the framework of ensumble network.~\cite{yao2020knowledge} appends classifiers to hidden layers so that these layers participate the online distillation process explicitly.
-~\cite{chung2020feature} introduces adversarial learning into online distillation.
+Some methods are not in the framework of ensumble network.
+Method \textbf{DCM}~\cite{yao2020knowledge} appends classifiers to hidden layers so that these layers participate the online distillation process explicitly.
+Method \textbf{AFD}~\cite{chung2020feature} introduces adversarial learning into online distillation.
 
 In this paper some of ensumble online methods are discussed.
 Section ~\ref{vanilla_kd} will introduce the original form of knowledge distillation, which is the basis of online knowledge distillation.
@@ -94,7 +107,8 @@ Section ~\ref{review} will review these methods and discuss the challenges and o
    \begin{center}
    \includegraphics[width=0.9\linewidth]{vanilla_kd.png}
    \end{center}
-      \caption{Vanilla Knowledge Distillation}
+      \caption{Vanilla knowledge distillation. Two copies of data are sent to teacher and student respectively. Then the output of teacher
+is used as advice to training process of student.}
    \label{fig:vanilla_kd}
 \end{figure*}
    
@@ -107,7 +121,7 @@ The knowledge extracted from output of T is used to direct the training of S.
 Formally, suppose there is a classification task with a labeled dataset $\mathcal D=\{(x_i, y_i)\}_i^n$, and $f_S(x;\theta):\mathcal X\mapsto\mathbb{R}^m$ is the logits function of the student network S. The parameters of T is fixed
 during distillation so that function $f_T(x)$ without parameters is used to denote its logits function.
 
-Equation ~\eqref{eqn:kd_loss} gives the distillation loss, where $\textrm{H}(p, q)$ is cross entroy loss function, $\sigma$ is softmax function and $t$ is temperature of softmax function. Equation ~\eqref{eqn:gt_loss} gives the
+Equation~\eqref{eqn:kd_loss} gives the distillation loss, where $\textrm{H}(p, q)$ is cross entroy loss function, $\sigma$ is softmax function and $t$ is temperature of softmax function. Equation~\eqref{eqn:gt_loss} gives the
 ground truth loss of classification. The final training loss is a weighted sum of this two terms.
 
 \begin{equation}
@@ -124,60 +138,124 @@ L_{\textrm{GT}}=\sum\limits_{(x_i, y_i)\in \mathcal D}{\textrm{H}(\textrm{one-ho
 
 %------------------------------------------------------------------------
 \section{Ensumble Model}\label{ensubmle_model}
-An ensubmle model will be proposed here. Then the text will explain how most online methods fit in this model.
+An ensumble model will be proposed here.
+Then the text will explain how most online methods fit in this model.
 
-Suppose a group of student networks $S_1,\dots, S_s$. Now there is no powerful pretrained teacher networks. A group of weighted sums of student logits becomes the teacher logits, as calculated in Equation~\ref{eqn:ensumble}, where
-weights $\{w_{ij}; i, j=1,\dots,s\}$ are calculated in different way across different methods. Note that these weights
-can be updated, in~\cite{lan2018knowledge} and~\cite{chen2020online}
-they are a part of the network, in~\cite{guo2020online} they are calculated after several iterations.
+Suppose a group of student networks $S_1,\dots, S_s$.
+Now there is no powerful pretrained teacher networks.
+A group of weighted sums of student logits becomes the teacher logits,
+as calculated in Equation~\eqref{eqn:ensumble}, where
+$\{w_{ij}; i, j=1,\dots,s\}$ are weights and $\Theta={\theta_1,\dots,\theta_s}$ is all student parameters. Note that these weights
+can be updated, in method \textbf{ONE}~\cite{lan2018knowledge} and \textbf{OKDDip}~\cite{chen2020online}
+they are a part of the network, in method \textbf{KDCL}~\cite{guo2020online} they are calculated after several iterations.
 
 \begin{equation}
 \label{eqn:ensumble}
 f_{T_i}(x; \Theta) = \sum\limits_{j=1,\dots,s}{w_{ij} f_{S_j}(x; \theta_j)}
 \end{equation}
 
-Then these sums are used to teach students in the same way as Equation~\ref{eqn:kd_loss}. The distillation loss is given by Equation~\ref{eqn:ensumble_loss}.
+Then these sums are used to teach students in the same way as Equation~\eqref{eqn:kd_loss}. The distillation loss is given by Equation~\eqref{eqn:ensumble_loss}.
 \begin{equation}
 \label{eqn:ensumble_loss}
 L_{\textrm{ensumble}}=\sum\limits_{i=1,\dots,s}{L_{\textrm{KD}}(T_i, S_i)}
 \end{equation}
 
-Also the ground truth loss in Equation~\ref{eqn:gt_loss} for each student is added in the final total loss. Some methods also consider
+Also the ground truth loss in Equation~\eqref{eqn:gt_loss} for each student is added in the final total loss. Some methods also consider
 the ground truth loss for the ensumbles.
 
-Most online methods follow the above framework. In~\cite{lan2018knowledge}, the weights are nodes of the networks and involve the backward process.
-In~\cite{chen2020online} they are attentions calculated by the layer before logit layer.~\cite{zhang2018deep} does not strictly fit the framework, it
-aggregates difference of each pair of student networks as the knowledge distillation loss. However, it is approximate to the loss from the above framework where each teacher is
+Most online methods follow the above framework. In \textbf{ONE}~\cite{lan2018knowledge}, the weights are nodes of the networks and involve the backward process.
+In \textbf{OKDDip}~\cite{chen2020online} they are attentions calculated by the layer before logit layer. Method \textbf{DML}~\cite{zhang2018deep} does not strictly fit the framework, it
+aggregates difference of each pair of student networks as the knowledge distillation loss. However, this loss is approximate to the loss from the above framework where each teacher is
 an the average of all other student logits.
 
-Here comes the question: How can we get a good group of weights?~\cite{chen2020online} answers this question with attention mechanism~\cite{vaswani2017attention}, letting neural networks learn weights automatically. ~\cite{guo2020online} suppose the best linear
-combination of student logits gives good result, and transform this problem to an optimization problem. Yet there is
-no powerful theory or practical result to show how to get a better group of weights.
+Here comes the question:
+How can we get a good group of
+weights? \textbf{OKDDip}~\cite{chen2020online} answers
+this question with attention mechanism~\cite{vaswani2017attention}, letting neural networks learn weights automatically.
+\textbf{KDCL}~\cite{guo2020online} suppose the better linear
+combination of student logits gives better result,
+and transform this problem to an optimization problem.
+Yet there is no powerful theory or practical result to show how to get a better group of weights.
 
 
 \begin{figure*}
 \begin{center}
 \includegraphics[width=0.9\linewidth]{ensumble_teacher.png}
 \end{center}
-   \caption{The teacher logits in ensumble model. Different but similar input copies are sent to different student networks. The ensubmle logits come from the output of the student networks. Then they are used as the teacher output for distillation.}
+   \caption{The teacher logits in ensumble model. Different but similar input copies are sent to different student networks. The ensumble logits come from the output of the student networks. Then they are used as the teacher output for distillation.}
 \label{fig:ensumble_teacher}
 \end{figure*}
 
 %------------------------------------------------------------------------
 \section{Challenges and Opportunities}\label{review}
-\subsection{Utilization of Hidden Layers} Note that inner layers can be a part the knowledge to distill.
+\subsection{Utilization of Hidden Layers} Note that inner layers can be a part of the knowledge to distill.
 Although more and more offline methods are utilizing knowledge from hidden layers, online methods hardly use this information.
 The challenge to use inner layers is that
 only same layers across networks can be ensumbled.
-Offline methods use FC, CNN, or attention to match layers~\cite{romero2014fitnets}~\cite{yao2020knowledge}~\cite{DBLP:journals/corr/ZagoruykoK16a}~\cite{chen2021cross}.
-Online method in~\cite{yao2020knowledge} add classifiers to hidden layers and align output size,
-but it is both time consuming and space consuming.
-\subcetion{Space Consumption}
-space: branch/tree model -> DAG model
-explore the capacity of a network structure.
+Offline methods use FC, CNN or attention to match layers~\cite{chen2021cross}~\cite{romero2014fitnets}~\cite{yao2020knowledge}~\cite{DBLP:journals/corr/ZagoruykoK16a}.
+Online method \textbf{DCM}~\cite{yao2020knowledge} adds classifiers to hidden layers and align output size,
+but this method is both time consuming and memory consuming.
+
+\subsection{Memory Usage}
+More networks give better performance~\cite{du2020agree}~\cite{wu2021peer}.
+However several networks are trained
+simultaneously so the number of networks is
+limited by GPU memory capacity. \textbf{ONE}~\cite{lan2018knowledge}
+uses a branch model to reduce memory usage in which different networks
+share the same parameters at first several layers.
+In method \textbf{CL}~\cite{song2018collaborative} a tree model is used. As
+depicted in Figure~\ref{fig:tree_model}, all networks share parameters at root layers,
+networks share parameters in groups at inner layers and networks become individual at leave layers.
+
+Though parameter sharing is an attractive idea it reduces performance,
+after all more parameters means a lot. So it would be better to explore
+the field of parallel training. Anil \etal~\cite{anil2018large} has tried to
+do large-scale parallel training on \textbf{DML}\cite{zhang2018deep}.
+However other online methods with complicated structure are difficult to
+split their calculation process, limiting their usage in real world.
+
+\begin{figure}[t]
+   \begin{center}
+   \includegraphics[width=0.6\linewidth]{hierarchical.png}
+   \end{center}
+      \caption{Tree Model. Split network structure into three
+continuous parts. Four networks share the same parameters at first part. At second part two networks share the same parameters. And the four networks are individual at the last part.}
+   \label{fig:tree_model}
+\end{figure}
+
+\subsection{Network Capacity}
+Online Knowledge Distillation is more than just
+a scheme of knowledge distillation.
+In offline knowledge distillation provided with powerful pretrained teachers,
+the students outperforms those trained directly.
+This indicates that the capacity of a small network is much larger
+than we can reached so far. This is also proved by \textbf{ShuffleNet}~\cite{ma2018shufflenet} and \textbf{MobileNet}~\cite{DBLP:journals/corr/HowardZCKWWAA17}.
+
+In online methods, even the hint from teacher
+is not provided, the network themselves reach
+a better performance than plain training process.
+Thus such methods may provide hint on reaching 
+the maximum capacity of a network.
 %------------------------------------------------------------------------
 \section{Conclusion}
-conetent
+Online methods are one-phase and end-to-end
+training scheme. They do not require a powerful
+pretrained teacher, which is difficult to find
+in variety of real world tasks.
+Mainstream online methods follow
+the ensumble framework proposed in Section~\ref{ensubmle_model}.
+But their performance is limited by the number
+of branches.
+Online methods suitable for parallel computing
+will perform better in real world use because 
+number of branches is
+hardly limited by GPU memory.
+Actually, online distillation is beyond the scope of 
+knowledge distillation. It becomes a scheme for
+normal network training. When training a small network,
+online distillation methods can be applied to
+get a set of parameters with much better performance than
+directly training this network.
 
 
 {\small
