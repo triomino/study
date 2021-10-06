@@ -24,4 +24,16 @@ P2P 网络中，只寻找一定距离内的 peer，否则造成 congestion(拥�
 ### Methods
 Later
 
-## Efficient Network Reliability Computation in Uncertain Graphs
+## Efficient Network Reliability Computation in Uncertain Graphs(2019)
+问题：s-t 的可达概率
+贡献：用分层抽样减少采样数量，给了更紧的上下界？our approach is the first solution to achieve both high efficiency and accuracy to compute the network reliability
+
+文章把方法叫做 $S^2BDD$ scalable and sampling binary decision diagram
+
+### Methods
+Later
+
+## Recursive Stratified Sampling: A New Framework for Query Evaluation on Uncertain Graphs(TKDE-2015)
+
+### Methods
+Later
