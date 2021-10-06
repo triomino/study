@@ -34,6 +34,15 @@ Later
 Later
 
 ## Recursive Stratified Sampling: A New Framework for Query Evaluation on Uncertain Graphs(TKDE-2015)
+问题：s-t 可达概率
+贡献：RSS(Recursive Stratified Sampling),主要是降低 variance
+
+### Methods
+Later
+
+## Scalable Influence Maximization for Prevalent Viral Marketing in Large-Scale Social Networks(SIGKDD-2010)
+问题：影响力最大化
+贡献：又快又好
 
 ### Methods
 Later
