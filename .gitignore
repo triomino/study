@@ -18,9 +18,14 @@ cifar-10-batches-py
 ## archive
 *.zip
 *.tgz
+*.rar
 
 ## python
 __pycache__/
+
+## documents
+*.pdf
+*.docx
 
 ## old directory
 ads

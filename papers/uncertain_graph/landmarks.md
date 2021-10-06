@@ -1,0 +1,101 @@
+# Papers
+## Fast Shortest Path Distance Estimation in Large Networks(CIKM-2009)
+问题：图上最短路估计  
+贡献：提出一个解决方法（基于 landmark）  
+
+3.4 之前都是显而易见的东西，有时间认真看看后面的内容
+### 应用/起源
+web search(ranking/matching)  
+social networks
+### History -> state of art
+Dijkstra/BFS  
+combining bidirectional Dijkstra with A* and lower bounds (ALT algorithms)
+
+### Method
+landmarks -> 三角形 -> bounds of distance  
+Details later.
+
+## Approximate Shortest Distance Computing: A Query-Dependent Local Landmark Scheme(IEEE-2012)
+问题：图上最短路估计  
+贡献：指出 landmark+三角定界的方法存在巨大的 relative error  
+
+直观来讲，到这篇文章为止的 landmark 方法都是全局的，对 n^2 对点一视同仁(query-independent)，可能增加了 close pair 的 relative error(参考下图)，因此提出基于 SHORTEST PATH TREE 的局部方法。 这篇文章还有一些次要贡献（两个 indexing 技术）。
+
+![](images/global_landmarks_cause_error.png)
+### Methods
+Read later
+
+## Dynamic and Historical Shortest-Path Distance Queries on Large Evolving Networks by Pruned Landmark Labeling(www-2014)
+问题：动态图最短路精确计算
+贡献：第一个大规模动态图上的方法
+
+支持的操作：加点、加边。查询包括历史版本查询、change point 查询
+
+### History -> SOA
+exacty methods:
+ * 2-hop cover -> pruned landmark labeling/IS-Label
+ * tree decompositions
+### Methods
+Read later
+
+## Efficient Top-k Shortest-Path Distance Queries on Large Networks by Pruned Landmark Labeling(AAAI-2015)
+问题：top-k 最短路  
+贡献：first indexing method to top-k distance inquiry.  
+top-k 最短路能拿来衡量节点的连接紧密程度(看图)  
+![](images/top-k.png)
+文章里用这个做了 link prediction
+### Methods
+Read later
+
+
+
+## Fast exact shortest-path distance queries on large networks by pruned landmark labeling (SIGMOD-2013)(没看)
+pruned landmark labeling
+
+## Fast and Accurate Estimation of Shortest Paths in Large Graphs(CIKM-2010)
+问题：最短路估计  
+贡献：path-sketches, RDF-3X, give shortest paths with no computational overhead  
+这文章提了一嘴社交网络特点：contain many high degree nodes, are nowhere close to planar, and typically have no hierarchical structures that can be exploited for improving shortest path queries. 
+它说 path-sketches 包括了路径信息和 landmarks. 回头看看
+
+### Methods
+path-sketches
+Details later
+
+## Fast Fully Dynamic Landmark-based Estimation of Shortest Path Distances in Very Large Graphs(CIKM-11)
+问题：最短路估计  
+贡献：把 landmark 要记的东西改成 SPT
+
+他说 SPT 支持动态删改(?)，自然就变成动态方法了。次要贡献：提出又一种 landmark 选取策略。
+### Methods
+read later
+
+## Fully Dynamic Shortest-Path Distance Query Acceleration on Massive Networks(CIKM-16)
+问题：图最短路  
+贡献：billion-scale dynamic  
+
+## Related Work
+它说动态图方法里面 Approximate Shortest Distance Computing: A Query-Dependent Local Landmark Scheme 只能勉强 million-scale，Fast Fully Dynamic Landmark-based Estimation of Shortest Path Distances in Very Large Graphs 不是精确。而它是 dynamic billion-scale
+
+### Methods
+Bidirectional BFS, Bit-Parallel SPT  
+Details later
+
+## Landmark Indexing for Evaluation of Label-Constrained Reachability Queries(SIGMOD-17)
+问题：label-constrained reachability(LCR), 边有标签，询问只经过一部分标签的边st是否可达  
+贡献：
+
+### 应用/起源
+regular path queries: 标签就是字符，正则表达式 $(l_1\cup l_2\cup \dots \cup l_n)^*$
+
+### History -> SOA
+LCR 最早是 Computing label-constraint reachability in graph databases.(SIGMOD-2010) 这篇，本文 idea 继承自这里
+
+LCSP (label-constrained shortest path) Distance oracles in edge-labeled graphs. 这个是估计方法，因此对可达性无用
+
+SOA 是 Efficient processing of label-constraint reachability queries in large graphs. 这篇是拆 SCC 做的，SCC 很大或者桥很多就不行了。
+
+### Methods
+Balance between BFS and precomputed TC(transitive closure)
+Details Later
+
