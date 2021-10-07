@@ -10,10 +10,21 @@ social networks
 ### History -> state of art
 Dijkstra/BFS  
 combining bidirectional Dijkstra with A* and lower bounds (ALT algorithms)
+### NP Hard
+landmark-cover:选取最少的 landmarks，使得所有点对的询问都是正确的。  
+vertex-cover:选取最少的节点，使得所有边被 cover。  
 
+证明上面两个问题可以互相归约：对任一个 landmark-cover 的解，考虑最短路为 1 的点对，必须被 cover，所以这个解同时也是 vertex-cover 的解；对任一个 vertex-cover 的解，考虑任何点对之间的最短路，其上的边必然被覆盖，因此必有节点在此解中，从而也是 landmark-cover 的解。解等价因此最小解等价。
+
+### Set Cover
+每个节点对应所有最短路穿过他的点对集合，因此 Landmark-Cover 就变成 Set-Cover 问题，*A Greedy Heuristic for the Set-Covering Problem* 给出了一个贪心解法，$n^3$时间O(logn) 近似。
 ### Method
 landmarks -> 三角形 -> bounds of distance  
-Details later.
+唯一的操作点： landmarks 的选取策略。  
+ * degree/h: 按 degree 降序，把当选点距离 h 之内的都删除。
+ * centrality/h: 按到其余点距离和升序，点间距离不能小于 h。距离和采样估计。
+
+实验中 h=1 最好。
 
 ## Approximate Shortest Distance Computing: A Query-Dependent Local Landmark Scheme(IEEE-2012)
 问题：图上最短路估计  
