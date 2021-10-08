@@ -26,6 +26,14 @@ landmarks -> 三角形 -> bounds of distance
 
 实验中 h=1 最好。
 
+文中也提到了分图后每个子图按度/中心程度/边界程度找一个点。边界程度指子图内部邻居数乘外部邻居数。
+
+一个有趣的观察：上述策略在用上界估计时比随机好，但是用下界估计时随机更好。因为用边缘点估计下界更好？而上述策略找的都是集中点？
+
+### Experiment
+没见过的图统计指标：  
+ * clustering coefficient：三角形\*3/(三角形\*3+三点两边数量)描述聚集程度。往往社交网络会比随机网络高。
+ * parameter of Zipf distribution: 度数分布 $x^{-\theta}$，拟合一下这个 $\theta$
 ## Approximate Shortest Distance Computing: A Query-Dependent Local Landmark Scheme(IEEE-2012)
 问题：图上最短路估计  
 贡献：指出 landmark+三角定界的方法存在巨大的 relative error  
