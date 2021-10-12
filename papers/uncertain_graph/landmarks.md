@@ -42,7 +42,11 @@ landmarks -> 三角形 -> bounds of distance
 
 ![](images/global_landmarks_cause_error.png)
 ### Methods
-Read later
+SPT 上找 a,b 的 LCA, 记为 c,ac+bc 即为答案。局部 landmark 的意思是 landmark 不是全局那几个，而是与查询有关的，并不是指分图。
+
+$O(N)-O(1)$ LCA $\rightarrow$ $\pm1$RMQ $\rightarrow$ log(N) 分块 ST 表，最小值不是求和，直接两边 $2^k$ 拼一下就行了。
+
+indexing 技巧
 
 ## Dynamic and Historical Shortest-Path Distance Queries on Large Evolving Networks by Pruned Landmark Labeling(www-2014)
 问题：动态图最短路精确计算
@@ -86,6 +90,8 @@ Details later
 贡献：把 landmark 要记的东西改成 SPT
 
 他说 SPT 支持动态删改(?)，自然就变成动态方法了。次要贡献：提出又一种 landmark 选取策略。
+
+这和 local landmark 那篇有什么区别？
 ### Methods
 read later
 
