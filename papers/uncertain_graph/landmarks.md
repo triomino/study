@@ -46,7 +46,7 @@ SPT 上找 a,b 的 LCA, 记为 c,ac+bc 即为答案。局部 landmark 的意思�
 
 $O(N)-O(1)$ LCA $\rightarrow$ $\pm1$RMQ $\rightarrow$ log(N) 分块 ST 表，最小值不是求和，直接两边 $2^k$ 拼一下就行了。
 
-indexing 技巧
+indexing 技巧：later
 
 ## Dynamic and Historical Shortest-Path Distance Queries on Large Evolving Networks by Pruned Landmark Labeling(www-2014)
 问题：动态图最短路精确计算
@@ -81,9 +81,15 @@ pruned landmark labeling
 这文章提了一嘴社交网络特点：contain many high degree nodes, are nowhere close to planar, and typically have no hierarchical structures that can be exploited for improving shortest path queries. 
 它说 path-sketches 包括了路径信息和 landmarks. 回头看看
 
+是对 A Sketch-Based Distance Oracle for Web-Scale Graphs(WSDM-2010) 的改进
 ### Methods
-path-sketches
-Details later
+Sketch: 随机采样 $r=\log n$ 个点集 $S_0,S_1,\dots,S_r, |S_i|=2^i$, 从集合 $S_i$ 开始 BFS 求出每个点到 $S_i$ 的最短距离和对应点，有向图是一来一回两个点 $l_1,l_2$（其中一个点要走逆向边 BFS）, 重复 k 次整个过程，对每个点可以得到 $2kr$ 个 Landmark，作为其 Sketch。由 $|S_0|=1$ 保证至少能从 sketch 找到一条最短路。
+
+两个优化：
+ * 消圈：同一个点在 s->v, v->t 上。
+ * Shortcut：边 ww', w 在 sv 上，w' 在 vt 上。*Fast Fully Dynamic Landmark-based Estimation of Shortest Path Distances in Very Large Graphs(CIKM-11)* 在 Landmark SPT 上干了这个。
+
+Tree Sketch: Later
 
 ## Fast Fully Dynamic Landmark-based Estimation of Shortest Path Distances in Very Large Graphs(CIKM-11)
 问题：最短路估计  
