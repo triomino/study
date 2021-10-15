@@ -99,7 +99,13 @@ Tree Sketch: Later
 
 这和 local landmark 那篇有什么区别？
 ### Methods
-read later
+基本算法：SPT+LCA  
+Shortcut 技巧: $v=LCA,x\in sv, y\in vt$, xy 连着，那么就有一个 shortcut。这篇文章里直接两边枚举检测了。每个查询 $O(D^2)$，D 是直径  
+BFS 技巧：st 到所有 landmark 路径拿出来，在这个子图上平方时间找 shortcut 然后 BFS。每个查询 $O(k^2D^2)$(可以不用 shortcut 时间开方)  
+一种新的 landmark 选取策略：采样 M 条最短路，每次找 cover 最多条路的节点
+
+SPT 动态维护：有空看看这两篇 Fully Dynamic Algorithms for Maintaining Shortest Paths Trees(2000), Shortest Path Tree Computation in Dynamic Graphs(IEEE-2008)
+感觉加边就从加的边不断松弛；删边就从子树找回去的边然后重建，不想认真看了。
 
 ## Fully Dynamic Shortest-Path Distance Query Acceleration on Massive Networks(CIKM-16)
 问题：图最短路  
