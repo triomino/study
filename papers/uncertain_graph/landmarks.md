@@ -77,7 +77,7 @@ pruned landmark labeling
 
 ## Fast and Accurate Estimation of Shortest Paths in Large Graphs(CIKM-2010)
 问题：最短路估计  
-贡献：path-sketches, RDF-3X, give shortest paths with no computational overhead  
+贡献：path-sketches, 基于 RDF-3X 存储引擎, give shortest paths with no computational overhead  
 这文章提了一嘴社交网络特点：contain many high degree nodes, are nowhere close to planar, and typically have no hierarchical structures that can be exploited for improving shortest path queries. 
 它说 path-sketches 包括了路径信息和 landmarks. 回头看看
 
@@ -89,7 +89,7 @@ Sketch: 随机采样 $r=\log n$ 个点集 $S_0,S_1,\dots,S_r, |S_i|=2^i$, 从集
  * 消圈：同一个点在 s->v, v->t 上。
  * Shortcut：边 ww', w 在 sv 上，w' 在 vt 上。*Fast Fully Dynamic Landmark-based Estimation of Shortest Path Distances in Very Large Graphs(CIKM-11)* 在 Landmark SPT 上干了这个。
 
-Tree Sketch: Later
+Tree Sketch: 在 st 两棵树上双向 BFS。终止条件并不是集合重合，而是有一条边 uv 连着两个集合。
 
 ## Fast Fully Dynamic Landmark-based Estimation of Shortest Path Distances in Very Large Graphs(CIKM-11)
 问题：最短路估计  
