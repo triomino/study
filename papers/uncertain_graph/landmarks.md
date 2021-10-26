@@ -59,7 +59,15 @@ exacty methods:
  * 2-hop cover -> pruned landmark labeling/IS-Label
  * tree decompositions
 ### Methods
-Read later
+**2-hop cover**
+考虑无向图。索引 $L(v) = {(u_i, \delta_i)}$ 其中 $\delta_i$是 $u_i,v$ 的最短路。对这个索引查询$Q(s,t,L)=min\{su+ut|u\in L(s) \text{ and } u\in L(t)\}$.2-hop cover 指一个使得任意点对查询都是最短路的 $L$。怎么求？
+
+**Pruned Landmark Labeling**
+直接按 $v_1,v_2,...,v_n$ 顺序 BFS 全图。遍历到 $u$ 就把 $(v_k,D(v_k,u))$ 加到 $L(u)$ 里。Time O(nm) Space O(n^2)  
+剪枝(pruned)：按 $v_1,v_2,...,v_n$ 顺序 BFS，记遍历到 u 距离为 $\delta$，如果 $Q(v_k, u, L)\le \delta$ 那么不再 BFS u，$(u,\delta)$ 也不加入到索引里。  
+证明：st 最短路中编号最小的 $v_i$, 一定在 $L(s)$ 和 $L(u)$ 里。
+
+后面还有动态查询和历史查询 不看了
 
 ## Efficient Top-k Shortest-Path Distance Queries on Large Networks by Pruned Landmark Labeling(AAAI-2015)
 问题：top-k 最短路  
@@ -74,6 +82,7 @@ Read later
 
 ## Fast exact shortest-path distance queries on large networks by pruned landmark labeling (SIGMOD-2013)(没看)
 pruned landmark labeling
+这篇里有 Bit-Parallel BFS 的 idea?Bit-parallel SPT 说是从这里得到启发的。后面确认一下。
 
 ## Fast and Accurate Estimation of Shortest Paths in Large Graphs(CIKM-2010)
 问题：最短路估计  
@@ -117,6 +126,16 @@ SPT 动态维护：有空看看这两篇 Fully Dynamic Algorithms for Maintainin
 ### Methods
 Bidirectional BFS, Bit-Parallel SPT  
 Details later
+
+**Bidirectional BFS** 如果是交替扩展一个点，那么需要等 $d_s+d_t+1\ge d$ 才能终止，其中 $d_s,d_t$ 分别是起点集合和终点集合最远点距，$d$是当前找到最短距离。很显然的一个策略是每次交替扩展所有相同距离的点。找到的第一条就是最短路。这篇文章里还做了点集平衡，不是交替 BFS。个人觉得扣掉大点后这个策略影响不大。
+
+**怎么结合 SPT？** 度最大的那几个点建 SPT，查询时先在 SPT 里得到一个上界。Bi-BFS 的时候不通过 SPT 的根，同时 Bi-BFS 在 $d_s+d_t+1$ 到达上界的时候立即停止。
+
+相当有意思的方法。
+
+**Bit-Parallel SPT** 一个同时维护 ${r}\cup N(r)$ 为根的所有 SPT 的数据结构（其实不是 SPT，只记录距离不记录父亲）。首先 $r$ 的距离全部要记录，然后 $|N(r)|\le 64$ 对$u\in N(r)$ 对任意点 v 用一个 64-bit int 记录一下 $d_{uv}$ 是否等于 $d_{rv}$，在用一个记录是否等于 $d_{rv}-1$, 并不需要第三个 $d_{rv}+1$. 这样 65 个 SPT 只用了 17n bytes(社交网络，直径小，距离只占 1byte). 怎么在 BFS 时维护这玩意儿？自己想想也能弄出来,相当于一次性做 65 轮 BFS。怎么挑选根集合？作者就是直接按 ${r}\cup N(r)$ 的度和排序。
+
+后面还有一些压缩技巧和动态更新的内容，以后再说。
 
 ## Landmark Indexing for Evaluation of Label-Constrained Reachability Queries(SIGMOD-17)
 问题：label-constrained reachability(LCR), 边有标签，询问只经过一部分标签的边st是否可达  
