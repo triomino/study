@@ -11,7 +11,9 @@ predict probability of protein-protein interaction
 discover reliable peers in P2P transfer  
 infomation diffusion in social network(estimate number of infected people)
 ### Methods
-Read later
+**直接蒙特卡洛**。每次询问采样 k 个图，不用完全采样，直接从 s 开始一边 BFS 一边确定边。（应该可以提前采样 k 个图，查询时用各种手段加速计算可达）
+
+**蒙特卡洛加索引**。提前采样 k 个图，每条边村 k-bit 表示在 k 个图里是否连接。这样 BFS 时节点要反复入队，其实没快多少，甚至因为要跑完全图慢了不少。改进思路：可以参考最短路那篇文章里的 bit parallel 思想，说不定能一次跑完/一次64轮。
 
 ## Distance-Constraint Reachability Computation in Uncertain Graphs(VLDB-2011)
 问题：distance-constraint reachability (DCR), 在不确定图里给定距离限制问 s-t 可达概率
