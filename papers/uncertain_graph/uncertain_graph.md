@@ -86,7 +86,7 @@ RCSS：和 RSS-Ⅱ 一样，只是不用做空层抽样（因为这一层结果�
 正式形式化。$O(k|V|N|E|)$, $k$ 是目标集合大小，$N$ 是每次估计时蒙特卡洛次数，显然这个复杂度不可接受。
 
 ## Cost Effective Lazy Forward (CELF) Algorithm
-在文章 Cost-effective Outbreak Detection in Networks(KDD-07) 提出。就是朴素方法加剪枝，由子模性质，新加入的点在这一轮的增量不会大于上一轮时的增量，弄个堆维护一下增量就行了，甚至没有删除，用肥波拿起堆直接 O(1)。复杂度还是 $O(k|V|N|E|)$，但是实际跑要快很多。不过第一轮的 $O(|V|N|E|)$ 是硬伤。
+在文章 Cost-effective Outbreak Detection in Networks(KDD-07) 提出。就是朴素方法加剪枝，由子模性质，新加入的点在这一轮的增量不会大于上一轮时的增量，弄个堆维护一下增量就行了，甚至没有删除，~~用肥波拿起堆直接 O(1)~~。夷，不对，这里用的是大根堆，减小增量并不是小根堆里的 decrease key，还是要 log(n)。复杂度是 $O(k|V|\log |V|N|E|)$，但是实际跑要快很多。不过第一轮的 $O(|V|N|E|)$ 是硬伤。
 
 ## Erdős–Rényi
 随机图，小数据可以用。
