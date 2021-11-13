@@ -62,12 +62,16 @@ a.backward(retain_graph=True)
 opt1.store_and_clear_grad()
 
 opt2.zero_grad()
-loss['Loss-g'].backward()
+b.backward()
 opt2.step()
 
 opt1.restore_grad()
 opt2.step()
 ```
+
+## 坑
+`model.cuda()` is equal to `model=model.cuda()`
+`tensor.cuda()` is not equal to `tensor=tensor.cuda()`
 
 ## Python
 今天碰到的一个坑。[stackoverflow](https://stackoverflow.com/questions/29548587/import-fails-when-running-python-as-script-but-not-in-ipython) 有解答。直接 python 是能 import 当前目录下的东西，如果 python xxx.py 也能，这两个系统环境变量其实一样。但是 python aaa/xxx.py 就不对了，第一个环境变量会变成 aaa. 我真的搞不懂有些项目怎么弄的 path，直接 clone 下来都不能跑的。
