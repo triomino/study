@@ -15,6 +15,11 @@ infomation diffusion in social network(estimate number of infected people)
 
 **蒙特卡洛加索引**。提前采样 k 个图，每条边村 k-bit 表示在 k 个图里是否连接。这样 BFS 时节点要反复入队，其实没快多少，甚至因为要跑完全图慢了不少。改进思路：可以参考最短路那篇文章里的 bit parallel 思想，说不定能一次跑完/一次64轮。
 
+**RSS**. Recursive Stratified Sampling. 后面有。
+
+**Lazy Propagation Sampling**. 给蒙特卡洛优化常数，尽量不接触未激活边。一条边在激活之后，取一个几何分布随机变量计算下次取到的轮数，从而可以在中间这几轮采样中直接跳过对该边的采样。具体实现的时候每个节点维护一个比较轮次的最小堆就行了。我有一个巨大的疑惑，它不是全局的轮数，是每个点单独计算轮数（这个点被访问第几轮了），这样和直接蒙特卡洛还一样吗？
+这里有一个问题，就是几何随机变量取的复杂度要加速到 O(1), 不然是没有意义的，只是变成提前采样边了。
+
 ## Distance-Constraint Reachability Computation in Uncertain Graphs(VLDB-2011)
 问题：distance-constraint reachability (DCR), 在不确定图里给定距离限制问 s-t 可达概率
 贡献：提出这个问题，并给了一种方法
