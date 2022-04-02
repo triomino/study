@@ -190,6 +190,72 @@ func (v *Vertex) Scale(f float64) {
 
 receiver 只能给同包的结构声明，int float 在别的包被定义，所以无法声明 receiver。
 （不过可以给一个等价的类型如 `type MyFloat float64`）
+
+~~上文里把 receiver 误解成类函数了。receiver 指的是函数里接收的那个实例。~~
+
+类函数声明 receiver 是指针的时候，既可以类调用也可以指针调用，go 把类调用也变成指针调用了。声明 recevier 是结构的时候，也可以指针调用，但是不会改变结构的值，这也是编译器解释行为。
+
+声明 receiver 是结构的时候，调用时应该是拷贝了一个新结构，不然为什么改了没用？这样效率会不会有点低？c++ 可以声明 const 让编译器检查里面没有修改，这样运行时就不用拷贝了。
+
+## 接口
+```go
+type Abser interface {
+	Abs() float64
+}
+```
+如果 receiver 是指针，那么指针类是接口的实现，指针对应的结构不是接口的实现。
+
+```go
+fmt.Printf("(%v, %T)\n", i, i) // value and type of interface i
+```
+internal 应该是接口值记录了类型和对应的实例值，调用的时候对实例调用类型方法。
+
+go 里类函数默认处理 nil。接口如果 value 是 nil，它不是 nil 的(比如给它赋予一个 nil 的指针)。nil 的接口没有 value 和 type(声明时未初始化)，不能进行任何调用，但是可以 printf %v %T, p 出来都是 nil
+
+`t, ok := i.(T)` 检查接口 `i` 的值是不是类型 `T`，不是 `T` 而省略 ok 会运行时错误，不省略时 t 置为 `T` 的默认值。
+
+```go
+switch v := i.(type) {
+case int:
+    fmt.Printf("Twice %v is %v\n", v, v*2)
+case string:
+    fmt.Printf("%q is %v bytes long\n", v, len(v))
+default:
+    fmt.Printf("I don't know about type %T!\n", v)
+}
+```
+
+fmt 包里的 Stringer 接口：
+```go
+type Stringer interface {
+    String() string
+}
+```
+因此一个类只要实现 String() 函数就可以被 fmt 打印。
+
+不知道在哪里定义的 error 接口：
+```go
+type error interface {
+    Error() string
+}
+```
+很多 go 函数多挂一个返回参数 error 指针(一般 error 的实现是指针而不是结构)，nil 成功 non-nil 不成功。
+```go
+func run() error {
+	return &MyError{
+		time.Now(),
+		"it didn't work",
+	}
+}
+
+func main() {
+	if err := run(); err != nil {
+		fmt.Println(err)
+	}
+}
+```
+
+Note: A call to fmt.Sprint(e) inside the Error method will send the program into an infinite loop. You can avoid this by converting e first: fmt.Sprint(float64(e)). Why?也许因为 fmt.Sprint(e) 根据 e 的类型是 error而调用 e.Error()
 ## nil
 以后弄弄懂。
 ## 高效写法
